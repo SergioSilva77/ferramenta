@@ -53,6 +53,12 @@ valor = xl.get_value("A1")
 addr = xl.get_cell_address(3, 2)        # "B3"
 valor2 = xl.get_cell_by_address("B3")   # valor da célula B3
 
+# ====== COPIAR / MOVER ======
+xl.copy_range("A1:B10", "D1")            # Copia tudo (fórmulas, formatação)
+xl.copy_values("A1:B10", "D1")           # Copia apenas valores
+xl.copy_format("A1:B10", "D1")           # Copia apenas formatação
+xl.move_range("A1:B10", "D1")            # Move (recorta e cola)
+
 # ====== MACROS ======
 xl.run_macro("FormatarRelatorio")
 xl.run_macro("ProcessarDados", "arg1", 123)
@@ -109,6 +115,13 @@ xl.refresh_pivot_table("PivotTable1")
 
 # Filtrar: mostrar só Este e Oeste
 xl.filter_pivot_values("PivotTable1", "Região", ["Este", "Oeste"])
+
+# Filtrar PivotTable OLAP
+xl.filter_pivot_olap(
+    "Tabela dinâmica9",
+    "[Base_atualizada].[TipoLead].[TipoLead]",
+    "[Base_atualizada].[TipoLead].&[CONSÓRCIO]"
+)
 
 # Filtrar: esconder Norte e Sul
 xl.filter_pivot_exclude("PivotTable1", "Região", ["Norte", "Sul"])
@@ -194,6 +207,9 @@ xl.quit()
 | `set_formula_local()` | cell_range, formula | Insere fórmula local (pt-BR) |
 | `clear()` | cell_range | Limpa conteúdo |
 | `copy_range()` | src_range, dest_range, dest_sheet | Copia intervalo |
+| `copy_values()` | src_range, dest_range, dest_sheet | Copia apenas valores |
+| `copy_format()` | src_range, dest_range, dest_sheet | Copia apenas formatação |
+| `move_range()` | src_range, dest_range, dest_sheet | Move (recorta e cola) |
 | `auto_fit()` | columns | Ajusta largura das colunas |
 | `get_cell_address()` | row, col | Retorna endereço. Ex: (1,1) -> "A1" |
 | `get_cell_by_address()` | address | Lê valor por endereço. Ex: "A1" |
@@ -275,6 +291,7 @@ xl.quit()
 | `list_pivot_tables()` | sheet | Lista PivotTables |
 | `refresh_pivot_table()` | name, sheet | Atualiza PivotTable |
 | `filter_pivot_values()` | pivot, field, visible_items | Filtra itens visíveis |
+| `filter_pivot_olap()` | pivot, field, value | Filtra PivotTable OLAP (CurrentPage) |
 | `filter_pivot_exclude()` | pivot, field, exclude_items | Esconde itens específicos |
 | `clear_pivot_filters()` | pivot, sheet | Limpa filtros pivot |
 | `set_pivot_page_filter()` | pivot, field, value | Filtro de página |

@@ -146,6 +146,36 @@ class ExcelCom:
             self._ws.Range(src_range).Copy(self._ws.Range(dest_range))
         return True
 
+    def copy_values(self, src_range: str, dest_range: str, dest_sheet=None) -> bool:
+        """Copia apenas valores (sem fórmulas)."""
+        if dest_sheet:
+            self._ws.Range(src_range).Copy()
+            dest_sheet.Range(dest_range).PasteSpecial(Paste=-4163)  # xlPasteValues
+        else:
+            self._ws.Range(src_range).Copy()
+            self._ws.Range(dest_range).PasteSpecial(Paste=-4163)  # xlPasteValues
+        self._xl.CutCopyMode = False
+        return True
+
+    def copy_format(self, src_range: str, dest_range: str, dest_sheet=None) -> bool:
+        """Copia apenas a formatação."""
+        if dest_sheet:
+            self._ws.Range(src_range).Copy()
+            dest_sheet.Range(dest_range).PasteSpecial(Paste=-4122)  # xlPasteFormats
+        else:
+            self._ws.Range(src_range).Copy()
+            self._ws.Range(dest_range).PasteSpecial(Paste=-4122)  # xlPasteFormats
+        self._xl.CutCopyMode = False
+        return True
+
+    def move_range(self, src_range: str, dest_range: str, dest_sheet=None) -> bool:
+        """Move (recorta e cola) o range para outro local."""
+        if dest_sheet:
+            self._ws.Range(src_range).Cut(dest_sheet.Range(dest_range))
+        else:
+            self._ws.Range(src_range).Cut(self._ws.Range(dest_range))
+        return True
+
     def auto_fit(self, columns: str = "A:Z") -> bool:
         """Ajusta largura das colunas."""
         self._ws.Columns(columns).AutoFit()
@@ -421,6 +451,22 @@ class ExcelCom:
         for i in range(1, pf.PivotItems().Count + 1):
             pi = pf.PivotItems(i)
             pi.Visible = pi.Name in visible_items
+        return True
+
+    def filter_pivot_olap(self, pivot_name: str, field_name: str, value: str, sheet: str = None) -> bool:
+        """Filtra PivotTable OLAP usando CurrentPage.
+        
+        Args:
+            pivot_name: Nome da PivotTable
+            field_name: Nome do campo OLAP. Ex: "[Base_atualizada].[TipoLead].[TipoLead]"
+            value: Valor para filtrar. Ex: "[Base_atualizada].[TipoLead].&[CONSÓRCIO]"
+            sheet: Nome da sheet (opcional)
+        """
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        pt = ws.PivotTables(pivot_name)
+        pf = pt.PivotFields(field_name)
+        pf.ClearAllFilters()
+        pf.CurrentPage = value
         return True
 
     def filter_pivot_exclude(self, pivot_name: str, field_name: str, exclude_items: list, sheet: str = None) -> bool:
