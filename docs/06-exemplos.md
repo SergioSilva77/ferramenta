@@ -65,3 +65,30 @@ finally
     closeBrowser
 endtry
 ```
+
+## Exemplo 5: Arrays e Foreach
+
+```rpa
+# arrays.rpa
+
+# Criar array
+$frutas = ["maçã", "banana", "laranja", "uva"]
+
+# Acessar por índice
+log --msg="Primeira: " + $frutas[0]
+log --msg="Última: " + $frutas[3]
+
+# Percorrer com foreach
+foreach $fruta in $frutas
+    log --msg="Fruta: " + $fruta
+endforeach
+
+# Foreach com condicional
+$pessoas = ["Ana", "João", "Maria"]
+
+foreach $pessoa in $pessoas
+    if $pessoa == "João"
+        log --msg="Encontrei o João!"
+    endif
+endforeach
+```

@@ -15,6 +15,7 @@ comando
     : blocoIf          # CmdIf
     | blocoWhile       # CmdWhile
     | blocoFor         # CmdFor
+    | blocoForEach     # CmdForEach
     | blocoTry         # CmdTry
     | blocoDef         # CmdDef
     | cmdGenerico      # CmdGenerico
@@ -53,6 +54,13 @@ blocoFor
       'next'
     ;
 
+// --- Foreach ---
+blocoForEach
+    : 'foreach' VAR 'in' expressao NEWLINE*
+      (comando NEWLINE*)*
+      'endforeach'
+    ;
+
 // --- Try / Catch / Finally ---
 blocoTry
     : 'try' NEWLINE*
@@ -73,6 +81,7 @@ blocoDef
 expressao
     : '(' expressao ')'
     | '!' expressao
+    | expressao '[' expressao ']'                          # ExprIndex
     | expressao ('==' | '!=' | '>' | '<' | '>=' | '<=') expressao
     | expressao ('+' | '-' | 'or') expressao
     | expressao ('*' | '/' | 'and') expressao
