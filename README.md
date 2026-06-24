@@ -19,12 +19,38 @@ Biblioteca Python modular para automação RPA.
 | [sql](docs/modulos/sql.md) | `pip install rpaflow[sql]` | MySQL, PostgreSQL, SQL Server, SQLite |
 | [excel](docs/modulos/excel.md) | `pip install rpaflow[excel]` | Leitura e escrita de planilhas (openpyxl) |
 | [excel_com](docs/modulos/excel_com.md) | `pip install rpaflow[excel-com]` | Automação Excel via COM (Windows) - 60+ métodos |
-| [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador |
+| [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador - recursive iframe |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
 
-## Quick Start
+## Quick Start - Browser
+
+```bash
+pip install rpaflow[browser]
+```
+
+```python
+from rpaflow.browser import Browser
+
+browser = Browser()
+browser.start("https://site.com", type="playwright")
+
+# Normal
+browser.click("#botao")
+browser.type_text("#campo", "texto")
+
+# Frame explícito
+browser.click("#botao", frame="#iframe-1")
+
+# Recursive (busca em todos os iframes)
+browser.click("#botao", recursive=True)
+browser.select_option("#dropdown", "Opção 1", recursive=True)
+
+browser.close()
+```
+
+## Quick Start - Excel COM
 
 ```bash
 pip install rpaflow[excel-com]
@@ -37,20 +63,12 @@ xl = ExcelCom(visible=True)
 xl.open("C:/dados/vendas.xlsx")
 
 # Filtrar tabela
-xl.filter_column_values("Vendas", 1, ["PCD"])       # Mostrar só PCD
-xl.filter_column_exclude("Vendas", 1, ["PF", "PJ"]) # Esconder PF e PJ
-xl.filter_column_number("Vendas", 3, ">1000")        # Valor > 1000
-xl.sort_column("Vendas", 3, order="desc")            # Maior ao menor
+xl.filter_column_values("Vendas", 1, ["PCD"])
+xl.filter_column_exclude("Vendas", 1, ["PF", "PJ"])
+xl.sort_column("Vendas", 3, order="desc")
 
 # Ler apenas linhas visíveis
 dados = xl.read_filtered_table("Vendas")
-
-# Pivot Table
-xl.filter_pivot_values("PivotTable1", "Região", ["Este", "Oeste"])
-
-# Sheets ocultas
-print(f"Ocultas: {xl.count_hidden_sheets()}")
-print(f"Colunas ocultas: {xl.list_hidden_columns()}")
 
 xl.save()
 xl.close()
