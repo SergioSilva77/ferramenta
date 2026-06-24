@@ -12,10 +12,13 @@ requires-python = ">=3.9"
 
 [project.optional-dependencies]
 sql = ["pymysql>=1.0"]
+sql-postgresql = ["psycopg2-binary>=2.9"]
+sql-sqlserver = ["pyodbc>=5.0"]
+sql-all = ["pymysql>=1.0", "psycopg2-binary>=2.9", "pyodbc>=5.0"]
 excel = ["openpyxl>=3.1"]
 browser = ["playwright>=1.40"]
 api = ["httpx>=0.25"]
-all = ["rpaflow[sql,excel,browser,api]"]
+all = ["rpaflow[sql,excel,browser,api,sql-postgresql,sql-sqlserver]"]
 dev = ["pytest>=7.0", "pytest-cov"]
 
 [tool.hatch.build.targets.wheel]
