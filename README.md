@@ -12,30 +12,31 @@ Biblioteca Python modular para automação RPA.
 | [04 - Exemplos](docs/04-exemplos.md) | Scripts de exemplo |
 | [05 - Roadmap](docs/05-roadmap.md) | Ordem de implementação |
 
-## Quick Start
-
-```bash
-pip install rpaflow
-```
-
-```python
-from rpaflow import sql
-
-sql.connect(host="localhost", user="root", password="123", database="vendas", type="mysql")
-sql.insert("clientes", {"nome": "João", "email": "joao@email.com"})
-sql.disconnect()
-```
-
 ## Módulos
 
 | Módulo | pip install | Descrição |
 |--------|-------------|-----------|
-| `sql` | `pip install rpaflow[sql]` | Conectar, consultar, inserir, atualizar, deletar |
-| `excel` | `pip install rpaflow[excel]` | Abrir, ler, escrever, salvar planilhas |
-| `browser` | `pip install rpaflow[browser]` | Iniciar navegador, clicar, digitar, screenshot |
-| `files` | `pip install rpaflow[files]` | Ler, escrever, copiar, mover, deletar arquivos |
-| `api` | `pip install rpaflow[api]` | GET, POST, PUT, DELETE em APIs REST |
-| `email` | `pip install rpaflow[email]` | Enviar e ler emails |
+| [sql](docs/modulos/sql.md) | `pip install rpaflow[sql]` | MySQL, PostgreSQL, SQL Server, SQLite |
+| [excel](docs/modulos/excel.md) | `pip install rpaflow[excel]` | Leitura e escrita de planilhas |
+| [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador |
+| [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
+| [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
+| [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
+
+## Quick Start
+
+```bash
+pip install rpaflow[sql]
+```
+
+```python
+from rpaflow.sql import SQL
+
+db = SQL(type="mysql", host="localhost", user="root", password="123", database="vendas")
+db.connect()
+db.insert("clientes", {"nome": "João", "email": "joao@email.com"})
+db.disconnect()
+```
 
 ## Instalar Tudo
 
