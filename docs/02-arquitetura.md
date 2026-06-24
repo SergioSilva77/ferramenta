@@ -6,44 +6,44 @@
 rpaflow/
 ├── src/
 │   └── rpaflow/
-│       ├── __init__.py              # Exports públicos
-│       ├── _exceptions.py           # Exceções customizadas
-│       ├── _deps.py                 # Checker de dependências
-│       │
-│       ├── sql/                     # Módulo SQL
-│       │   ├── __init__.py
-│       │   └── _client.py
-│       │
-│       ├── excel/                   # Módulo Excel
-│       │   ├── __init__.py
-│       │   └── _reader.py
-│       │
-│       ├── browser/                 # Módulo Browser
-│       │   ├── __init__.py
-│       │   └── _driver.py
-│       │
-│       ├── files/                   # Módulo Arquivos
-│       │   ├── __init__.py
-│       │   └── _operations.py
-│       │
-│       ├── api/                     # Módulo HTTP/REST
-│       │   ├── __init__.py
-│       │   └── _client.py
-│       │
-│       └── email/                   # Módulo Email
-│           ├── __init__.py
-│           └── _smtp.py
+│       ├── __init__.py
+│       ├── sql.py              # Classe SQL
+│       ├── excel.py            # Classe Excel
+│       ├── browser.py          # Classe Browser
+│       ├── files.py            # Classe Files
+│       ├── api.py              # Classe API
+│       └── email.py            # Classe Email
 │
 ├── tests/
 ├── pyproject.toml
 └── README.md
 ```
 
-## Dependências por Módulo
+## Como Funciona
+
+Cada módulo é uma **classe**. Você importa a classe, instancia e chama os métodos.
+
+```python
+from rpaflow.sql import SQL
+from rpaflow.excel import Excel
+
+# Conectar no banco
+db = SQL(host="localhost", user="root", password="123", database="vendas", type="mysql")
+db.connect()
+db.insert("clientes", {"nome": "João"})
+db.disconnect()
+
+# Planilha
+planilha = Excel("dados.xlsx")
+planilha.open()
+dados = planilha.read("Planilha1", range="A1:D10")
+planilha.close()
+```
+
+## Dependências
 
 | Módulo | Dependência | pip install |
 |--------|-------------|-------------|
-| core | — | `pip install rpaflow` |
 | sql | pymysql | `pip install rpaflow[sql]` |
 | excel | openpyxl | `pip install rpaflow[excel]` |
 | browser | playwright | `pip install rpaflow[browser]` |
@@ -54,9 +54,6 @@ rpaflow/
 ## Instalação
 
 ```bash
-# Só o que precisa
 pip install rpaflow[sql,excel]
-
-# Tudo
 pip install rpaflow[all]
 ```

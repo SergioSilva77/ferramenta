@@ -11,7 +11,6 @@ Biblioteca Python modular para automação RPA.
 | [03 - Módulos](docs/03-modulos.md) | API completa de cada módulo |
 | [04 - Exemplos](docs/04-exemplos.md) | Scripts de exemplo |
 | [05 - Roadmap](docs/05-roadmap.md) | Ordem de implementação |
-| [06 - Plugins](docs/06-plugins.md) | Como criar novos módulos |
 
 ## Quick Start
 

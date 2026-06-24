@@ -5,26 +5,29 @@
 Exportar dados do banco para planilha.
 
 ```python
-from rpaflow import sql, excel
+from rpaflow.sql import SQL
+from rpaflow.excel import Excel
 
 # Conectar ao banco
-sql.connect(host="localhost", user="root", password="123", database="vendas", type="mysql")
+db = SQL(host="localhost", user="root", password="123", database="vendas", type="mysql")
+db.connect()
 
 # Buscar dados
-clientes = sql.select("clientes")
-sql.disconnect()
+clientes = db.select("clientes")
+db.disconnect()
 
 # Criar planilha
-excel.open("clientes.xlsx")
-excel.write("Planilha1", range="A1", values=[
+planilha = Excel("clientes.xlsx")
+planilha.open()
+planilha.write("Planilha1", range="A1", values=[
     ["ID", "Nome", "Email", "Ativo"]
 ])
 
 for i, cliente in enumerate(clientes, start=2):
-    excel.write("Planilha1", range=f"A{i}", values=[[cliente[0], cliente[1], cliente[2], cliente[3]]])
+    planilha.write("Planilha1", range=f"A{i}", values=[[cliente[0], cliente[1], cliente[2], cliente[3]]])
 
-excel.save("clientes.xlsx")
-excel.close()
+planilha.save("clientes.xlsx")
+planilha.close()
 
 print("Planilha gerada com sucesso!")
 ```
@@ -36,9 +39,11 @@ print("Planilha gerada com sucesso!")
 Fazer login em um site e salvar dados no banco.
 
 ```python
-from rpaflow import browser, sql
+from rpaflow.browser import Browser
+from rpaflow.sql import SQL
 
 # Iniciar navegador
+browser = Browser()
 browser.start(url="https://site.com/login", type="playwright")
 
 # Fazer login
@@ -51,9 +56,10 @@ titulo = browser.get_text(selector="h1")
 browser.screenshot("apos_login.png")
 
 # Salvar no banco
-sql.connect(host="localhost", user="root", password="123", database="logs", type="mysql")
-sql.insert("acessos", {"usuario": "admin", "pagina": titulo})
-sql.disconnect()
+db = SQL(host="localhost", user="root", password="123", database="logs", type="mysql")
+db.connect()
+db.insert("acessos", {"usuario": "admin", "pagina": titulo})
+db.disconnect()
 
 browser.close()
 print("Login e registro concluídos!")
@@ -66,13 +72,16 @@ print("Login e registro concluídos!")
 Buscar dados de uma API e salvar em arquivo.
 
 ```python
-from rpaflow import api, files
+from rpaflow.api import API
+from rpaflow.files import Files
 
 # Buscar dados da API
+api = API()
 response = api.get("https://api.example.com/users")
 usuarios = response.json()
 
 # Salvar em arquivo
+files = Files()
 conteudo = ""
 for user in usuarios:
     conteudo += f"{user['name']} - {user['email']}\n"
@@ -88,20 +97,23 @@ print(f"{len(usuarios)} usuários salvos em usuarios.txt")
 Enviar planilha por email.
 
 ```python
-from rpaflow import email, excel
+from rpaflow.email import Email
+from rpaflow.excel import Excel
 
 # Gerar planilha
-excel.open("relatorio.xlsx")
-excel.write("Relatório", range="A1", values=[
+planilha = Excel("relatorio.xlsx")
+planilha.open()
+planilha.write("Relatório", range="A1", values=[
     ["Produto", "Quantidade", "Valor"],
     ["Notebook", 10, 4500.00],
     ["Mouse", 50, 25.00],
     ["Teclado", 30, 75.00]
 ])
-excel.save("relatorio.xlsx")
-excel.close()
+planilha.save("relatorio.xlsx")
+planilha.close()
 
 # Enviar por email
+email = Email()
 email.send(
     to="gerente@empresa.com",
     subject="Relatório de Estoque",
@@ -114,60 +126,38 @@ print("Email enviado com sucesso!")
 
 ---
 
-## Exemplo 5: Files + Browser
-
-Baixar arquivos de um site.
+## Exemplo 5: Automação Completa
 
 ```python
-from rpaflow import browser, files
-
-# Navegar até a página
-browser.start(url="https://site.com/downloads", type="playwright")
-
-# Encontrar links
-links = browser.get_all(selector="a.download-link")
-
-for link in links:
-    href = link.get_attribute("href")
-    filename = href.split("/")[-1]
-    print(f"Baixando: {filename}")
-    # Download via API ou outro método
-
-browser.close()
-print("Downloads concluídos!")
-```
-
----
-
-## Exemplo 6: Try/Catch com Vários Módulos
-
-Tratamento de erros em automação complexa.
-
-```python
-from rpaflow import sql, browser, excel
+from rpaflow.sql import SQL
+from rpaflow.browser import Browser
+from rpaflow.excel import Excel
 
 try:
     # Conectar ao banco
-    sql.connect(host="localhost", user="root", password="123", database="vendas", type="mysql")
+    db = SQL(host="localhost", user="root", password="123", database="vendas", type="mysql")
+    db.connect()
 
-    # Buscar pedidos
-    pedidos = sql.select("pedidos", where={"status": "pendente"})
+    # Buscar pedidos pendentes
+    pedidos = db.select("pedidos", where={"status": "pendente"})
     print(f"{len(pedidos)} pedidos encontrados")
 
     # Processar cada pedido
     for pedido in pedidos:
+        browser = Browser()
         browser.start(url=f"https://sistema.com/pedido/{pedido[0]}", type="playwright")
         browser.click(selector="#aprovar")
         browser.screenshot(f"pedido_{pedido[0]}.png")
         browser.close()
 
-        sql.update("pedidos", {"status": "aprovado"}, where={"id": pedido[0]})
+        db.update("pedidos", {"status": "aprovado"}, where={"id": pedido[0]})
 
     # Gerar relatório
-    excel.open("relatorio_aprovados.xlsx")
-    excel.write("Pedidos", range="A1", values=pedidos)
-    excel.save("relatorio_aprovados.xlsx")
-    excel.close()
+    planilha = Excel("relatorio_aprovados.xlsx")
+    planilha.open()
+    planilha.write("Pedidos", range="A1", values=pedidos)
+    planilha.save("relatorio_aprovados.xlsx")
+    planilha.close()
 
     print("Automação concluída com sucesso!")
 
@@ -176,8 +166,7 @@ except Exception as e:
 
 finally:
     try:
-        sql.disconnect()
-        browser.close()
+        db.disconnect()
     except:
         pass
 ```

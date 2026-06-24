@@ -2,42 +2,35 @@
 
 ## SQL
 
-Conexão e operações com bancos de dados.
-
 ```python
-from rpaflow import sql
+from rpaflow.sql import SQL
 
 # Conectar
-sql.connect(
-    host="localhost",
-    user="root",
-    password="123",
-    database="vendas",
-    type="mysql"          # mysql | postgresql | sqlserver
-)
+db = SQL(host="localhost", user="root", password="123", database="vendas", type="mysql")
+db.connect()
 
 # Inserir
-sql.insert("clientes", {"nome": "João", "email": "joao@email.com"})
+db.insert("clientes", {"nome": "João", "email": "joao@email.com"})
 
 # Selecionar
-clientes = sql.select("clientes")
-clientes_ativos = sql.select("clientes", where={"ativo": True})
+clientes = db.select("clientes")
+clientes_ativos = db.select("clientes", where={"ativo": True})
 
 # Atualizar
-sql.update("clientes", {"nome": "João Silva"}, where={"id": 1})
+db.update("clientes", {"nome": "João Silva"}, where={"id": 1})
 
 # Deletar
-sql.delete("clientes", where={"id": 1})
+db.delete("clientes", where={"id": 1})
 
 # Desconectar
-sql.disconnect()
+db.disconnect()
 ```
 
 ### Métodos
 
 | Método | Parâmetros | Descrição |
 |--------|-----------|-----------|
-| `connect()` | host, user, password, database, type | Conecta ao banco |
+| `connect()` | — | Conecta ao banco |
 | `insert()` | table, data (dict) | Insere registro |
 | `select()` | table, where (dict, opcional) | Retorna registros |
 | `update()` | table, data (dict), where (dict) | Atualiza registros |
@@ -48,36 +41,35 @@ sql.disconnect()
 
 ## Excel
 
-Leitura e escrita de planilhas.
-
 ```python
-from rpaflow import excel
+from rpaflow.excel import Excel
 
 # Abrir planilha
-excel.open("dados.xlsx")
+planilha = Excel("dados.xlsx")
+planilha.open()
 
 # Ler dados
-dados = excel.read("Planilha1", range="A1:D10")
+dados = planilha.read("Planilha1", range="A1:D10")
 
 # Escrever dados
-excel.write("Planilha1", range="A1", values=[
+planilha.write("Planilha1", range="A1", values=[
     ["Nome", "Idade", "Cidade"],
     ["Ana", 25, "São Paulo"],
     ["João", 30, "Rio"]
 ])
 
 # Salvar
-excel.save("saida.xlsx")
+planilha.save("saida.xlsx")
 
 # Fechar
-excel.close()
+planilha.close()
 ```
 
 ### Métodos
 
 | Método | Parâmetros | Descrição |
 |--------|-----------|-----------|
-| `open()` | filepath | Abre planilha |
+| `open()` | — | Abre planilha |
 | `read()` | sheet, range (opcional) | Lê dados |
 | `write()` | sheet, range, values | Escreve dados |
 | `save()` | filepath | Salva arquivo |
@@ -87,12 +79,11 @@ excel.close()
 
 ## Browser
 
-Automação de navegador (Playwright).
-
 ```python
-from rpaflow import browser
+from rpaflow.browser import Browser
 
 # Iniciar navegador
+browser = Browser()
 browser.start(url="https://site.com", type="playwright")
 
 # Clicar
@@ -126,10 +117,10 @@ browser.close()
 
 ## Files
 
-Operações com arquivos.
-
 ```python
-from rpaflow import files
+from rpaflow.files import Files
+
+files = Files()
 
 # Ler
 conteudo = files.read("arquivo.txt")
@@ -161,10 +152,10 @@ files.delete("lixo.txt")
 
 ## API
 
-Requisições HTTP/REST.
-
 ```python
-from rpaflow import api
+from rpaflow.api import API
+
+api = API()
 
 # GET
 response = api.get("https://api.example.com/users")
@@ -192,10 +183,10 @@ api.delete("https://api.example.com/users/1")
 
 ## Email
 
-Envio e leitura de emails.
-
 ```python
-from rpaflow import email
+from rpaflow.email import Email
+
+email = Email()
 
 # Enviar
 email.send(
