@@ -379,6 +379,113 @@ class ExcelCom:
         tbl = self._ws.ListObjects(table_name)
         return tbl.DataBodyRange.Rows.Count
 
+    def get_table_header_row(self, table_name: str) -> int:
+        """Retorna a linha (1-based) onde começa o header da tabela."""
+        tbl = self._ws.ListObjects(table_name)
+        return tbl.HeaderRowRange.Row
+
+    def read_table_as_dicts(self, table_name: str) -> list:
+        """Lê tabela como lista de dicionários."""
+        header = self.read_table_header(table_name)
+        nomes = [str(h or "").strip() for h in header]
+        raw = self.read_table(table_name)
+        return [dict(zip(nomes, row)) for row in raw]
+
+    def read_filtered_table_as_dicts(self, table_name: str) -> list:
+        """Lê tabela filtrada como lista de dicionários."""
+        header = self.read_table_header(table_name)
+        nomes = [str(h or "").strip() for h in header]
+        raw = self.read_filtered_table(table_name)
+        return [dict(zip(nomes, row)) for row in raw]
+
+    def find_row(self, table_name: str, criteria: dict) -> int:
+        """Retorna índice 0-based da primeira linha que bate com criteria.
+
+        Args:
+            table_name: Nome da tabela
+            criteria: Dicionário com coluna=valor. Ex: {"NF": "12345", "Identificador": "678"}
+
+        Returns:
+            Índice 0-based ou None se não encontrar.
+        """
+        header = self.read_table_header(table_name)
+        nomes = [str(h or "").strip() for h in header]
+        raw = self.read_table(table_name)
+        for idx, row in enumerate(raw):
+            if all(
+                str(row[nomes.index(k)] or "").strip().replace(".0", "") == str(v).strip().replace(".0", "")
+                for k, v in criteria.items() if k in nomes
+            ):
+                return idx
+        return None
+
+    def set_table_cell(self, table_name: str, data_row: int, column, value) -> bool:
+        """Escreve numa célula do corpo da tabela. data_row é 0-based."""
+        header_row = self.get_table_header_row(table_name)
+        col_idx = self._get_column_index(table_name, column) if isinstance(column, str) else column
+        self.set_cell(header_row + 1 + data_row, col_idx, value)
+        return True
+
+    def get_table_cell(self, table_name: str, data_row: int, column):
+        """Lê uma célula do corpo da tabela. data_row é 0-based."""
+        header_row = self.get_table_header_row(table_name)
+        col_idx = self._get_column_index(table_name, column) if isinstance(column, str) else column
+        return self.get_cell(header_row + 1 + data_row, col_idx)
+
+    def read_range_filtered(self, header_row: int, start_row: int = None,
+                            filters: dict = None, sheet: str = None) -> list:
+        """Lê um range e filtra em Python (para planilhas sem ListObject).
+
+        Args:
+            header_row: Linha do cabeçalho (1-based)
+            start_row: Linha inicial dos dados (padrão: header_row + 1)
+            filters: Dicionário com coluna=valor. Ex: {"Status": "A Pagar", "Data": "22/06/2026"}
+            sheet: Nome da sheet (opcional)
+
+        Returns:
+            Lista de dicionários com as linhas que atendem ao filtro.
+        """
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        if start_row is None:
+            start_row = header_row + 1
+
+        # Ler cabeçalho
+        header = []
+        for c in range(1, ws.UsedRange.Columns.Count + 1):
+            val = ws.Cells(header_row, c).Value
+            header.append(str(val or "").strip())
+
+        # Ler dados e filtrar
+        result = []
+        for r in range(start_row, ws.UsedRange.Rows.Count + 1):
+            # Pular linhas ocultas
+            if ws.Rows(r).Hidden:
+                continue
+
+            row = {}
+            for c, nome in enumerate(header, start=1):
+                row[nome] = ws.Cells(r, c).Value
+
+            # Aplicar filtros
+            if filters:
+                match = True
+                for col, valor in filters.items():
+                    if col in header:
+                        cell_val = str(row.get(col) or "").strip()
+                        filter_val = str(valor or "").strip()
+                        if valor is None:
+                            # Filtro: não vazio
+                            if cell_val == "":
+                                match = False
+                        elif cell_val != filter_val:
+                            match = False
+                if not match:
+                    continue
+
+            result.append(row)
+
+        return result
+
     def refresh_table(self, table_name: str) -> bool:
         """Atualiza uma tabela."""
         tbl = self._ws.ListObjects(table_name)

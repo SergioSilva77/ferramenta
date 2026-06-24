@@ -13,6 +13,11 @@ class Browser:
         self._browser = None
         self._type = None
 
+    @property
+    def page(self):
+        """Retorna o Playwright Page subjacente."""
+        return self._page
+
     # ========== INICIAR / FECHAR ==========
 
     def start(self, url: str = "", type: str = "playwright", headless: bool = False) -> bool:
@@ -246,3 +251,21 @@ class Browser:
         loc = self._find_element_recursive(selector, timeout)
         loc.select_option(label=label, timeout=timeout)
         return True
+
+    # ========== MÉTODOS RECURSIVOS PÚBLICOS ==========
+
+    def find_element_in_frames(self, selector: str, timeout: int = 5000):
+        """Busca elemento em todos os iframes e retorna o Locator."""
+        return self._find_element_recursive(selector, timeout)
+
+    def click_in_frames(self, selector: str, timeout: int = 5000) -> bool:
+        """Clica em elemento em qualquer iframe."""
+        return self._find_and_click_recursive(selector, timeout)
+
+    def select_in_frames(self, selector: str, label: str, timeout: int = 5000) -> bool:
+        """Seleciona opção em qualquer iframe."""
+        return self._find_and_select_recursive(selector, label, timeout)
+
+    def find_all_in_frames(self, selector: str, timeout: int = 5000) -> list:
+        """Busca múltiplos elementos em qualquer iframe."""
+        return self._find_all_recursive(selector, timeout)

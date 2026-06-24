@@ -129,6 +129,16 @@ browser.close()
 |--------|-----------|-----------|
 | `switch_to_frame()` | selector | Entra no iframe |
 | `switch_to_root()` | — | Sai do iframe |
+| `find_element_in_frames()` | selector, timeout | Busca elemento em todos os iframes |
+| `click_in_frames()` | selector, timeout | Clica em qualquer iframe |
+| `select_in_frames()` | selector, label, timeout | Seleciona opção em qualquer iframe |
+| `find_all_in_frames()` | selector, timeout | Busca múltiplos elementos em qualquer iframe |
+
+### Property
+
+| Propriedade | Descrição |
+|-------------|-----------|
+| `page` | Retorna o Playwright Page subjacente |
 
 ### Screenshot
 

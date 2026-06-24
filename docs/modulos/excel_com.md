@@ -294,6 +294,13 @@ xl.quit()
 | `read_table_header()` | table_name | Lê cabeçalho |
 | `read_table_column()` | table_name, column_name | Lê coluna |
 | `count_table_rows()` | table_name | Conta linhas |
+| `get_table_header_row()` | table_name | Retorna linha do header (1-based) |
+| `read_table_as_dicts()` | table_name | Lê tabela como lista de dicts |
+| `read_filtered_table_as_dicts()` | table_name | Lê tabela filtrada como lista de dicts |
+| `find_row()` | table_name, criteria | Busca linha por valores de colunas |
+| `set_table_cell()` | table_name, data_row, column, value | Escreve célula por índice 0-based |
+| `get_table_cell()` | table_name, data_row, column | Lê célula por índice 0-based |
+| `read_range_filtered()` | header_row, start_row, filters, sheet | Lê range e filtra em Python |
 | `refresh_table()` | table_name | Atualiza tabela |
 | `refresh_all()` | — | Atualiza tudo |
 

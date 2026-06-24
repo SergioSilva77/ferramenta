@@ -8,6 +8,7 @@ class Json:
     """Classe para leitura e escrita de arquivos JSON.
 
     Inspirado no Newtonsoft.Json (C#). Suporta dot notation via python-box.
+    Quando python-box não está instalado, retorna dict comum.
     """
 
     def __init__(self):
@@ -15,36 +16,41 @@ class Json:
             from box import Box, BoxList
             self._Box = Box
             self._BoxList = BoxList
+            self._has_box = True
         except ImportError:
-            raise ImportError(
-                "python-box é necessário para o módulo json. "
-                "Instale com: pip install rpaflow[java-script]"
-            )
+            self._has_box = False
 
     # ========== CARREGAR ==========
 
     def load(self, filepath: str, encoding: str = "utf-8"):
-        """Carrega arquivo JSON com dot notation.
+        """Carrega arquivo JSON. Retorna Box (com dot notation) ou dict.
 
         Args:
             filepath: Caminho do arquivo JSON
             encoding: Encoding do arquivo (padrão: utf-8)
 
         Returns:
-            Box com dot notation
+            Box com dot notation (se python-box instalado) ou dict
         """
-        return self._Box.from_json(filename=filepath, encoding=encoding, default_box=True)
+        with open(filepath, "r", encoding=encoding) as f:
+            data = _json.load(f)
+        if self._has_box:
+            return self._Box(data, default_box=True)
+        return data
 
     def loads(self, text: str):
-        """Parse string JSON com dot notation.
+        """Parse string JSON. Retorna Box (com dot notation) ou dict.
 
         Args:
             text: String JSON
 
         Returns:
-            Box com dot notation
+            Box com dot notation (se python-box instalado) ou dict
         """
-        return self._Box.from_json(json_text=text, default_box=True)
+        data = _json.loads(text)
+        if self._has_box:
+            return self._Box(data, default_box=True)
+        return data
 
     # ========== SALVAR ==========
 
@@ -57,10 +63,12 @@ class Json:
             indent: Indentação (padrão: 2)
             encoding: Encoding do arquivo (padrão: utf-8)
         """
-        if isinstance(data, self._Box):
+        if self._has_box and isinstance(data, self._Box):
             data.to_json(filename=filepath, indent=indent, encoding=encoding)
         else:
-            self._Box(data).to_json(filename=filepath, indent=indent, encoding=encoding)
+            plain = data.to_dict() if (self._has_box and hasattr(data, 'to_dict')) else data
+            with open(filepath, "w", encoding=encoding) as f:
+                _json.dump(plain, f, indent=indent, ensure_ascii=False)
         return True
 
     # ========== SERIALIZAR ==========
@@ -75,102 +83,49 @@ class Json:
         Returns:
             String JSON
         """
-        if isinstance(data, self._Box):
+        if self._has_box and isinstance(data, self._Box):
             return data.to_json(indent=indent)
-        return self._Box(data).to_json(indent=indent)
+        plain = data.to_dict() if (self._has_box and hasattr(data, 'to_dict')) else data
+        return _json.dumps(plain, indent=indent, ensure_ascii=False)
 
     # ========== UTILITÁRIOS ==========
 
     def get_keys(self, data) -> list:
-        """Retorna lista de chaves do objeto.
-
-        Args:
-            data: Box ou dict
-
-        Returns:
-            Lista de chaves
-        """
-        if isinstance(data, self._Box):
+        """Retorna lista de chaves do objeto."""
+        if self._has_box and hasattr(data, 'keys'):
             return list(data.keys())
         return list(data.keys())
 
     def get_values(self, data) -> list:
-        """Retorna lista de valores do objeto.
-
-        Args:
-            data: Box ou dict
-
-        Returns:
-            Lista de valores
-        """
-        if isinstance(data, self._Box):
+        """Retorna lista de valores do objeto."""
+        if self._has_box and hasattr(data, 'values'):
             return list(data.values())
         return list(data.values())
 
     def get_items(self, data) -> list:
-        """Retorna lista de tuplas (chave, valor) do objeto.
-
-        Args:
-            data: Box ou dict
-
-        Returns:
-            Lista de tuplas (chave, valor)
-        """
-        if isinstance(data, self._Box):
+        """Retorna lista de tuplas (chave, valor) do objeto."""
+        if self._has_box and hasattr(data, 'items'):
             return list(data.items())
         return list(data.items())
 
     def has_key(self, data, key: str) -> bool:
-        """Verifica se chave existe no objeto.
-
-        Args:
-            data: Box ou dict
-            key: Nome da chave
-
-        Returns:
-            True se existe, False caso contrário
-        """
-        if isinstance(data, self._Box):
-            return key in data
+        """Verifica se chave existe no objeto."""
         return key in data
 
     def get_value(self, data, key: str, default=None):
-        """Retorna valor de uma chave com fallback.
-
-        Args:
-            data: Box ou dict
-            key: Nome da chave
-            default: Valor padrão se não encontrar
-
-        Returns:
-            Valor da chave ou default
-        """
-        if isinstance(data, self._Box):
+        """Retorna valor de uma chave com fallback."""
+        if hasattr(data, 'get'):
             return data.get(key, default)
-        return data.get(key, default)
+        return default
 
     def to_dict(self, data) -> dict:
-        """Converte Box para dict.
-
-        Args:
-            data: Box ou dict
-
-        Returns:
-            dict
-        """
-        if isinstance(data, self._Box):
+        """Converte para dict."""
+        if self._has_box and hasattr(data, 'to_dict'):
             return data.to_dict()
         return dict(data)
 
     def to_list(self, data) -> list:
-        """Converte BoxList para list.
-
-        Args:
-            data: BoxList ou list
-
-        Returns:
-            list
-        """
-        if isinstance(data, self._BoxList):
+        """Converte para list."""
+        if self._has_box and hasattr(data, 'to_list'):
             return data.to_list()
         return list(data)

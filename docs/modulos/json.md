@@ -8,6 +8,12 @@ Leitura e escrita de arquivos JSON com dot notation. Inspirado no Newtonsoft.Jso
 pip install rpaflow[json]
 ```
 
+Ou sem instalar python-box (funciona com dict comum):
+
+```python
+from rpaflow.json import Json  # Funciona sem dependências extras
+```
+
 ## Exemplo Rápido
 
 ```python
