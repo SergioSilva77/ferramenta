@@ -80,11 +80,13 @@ class ExcelCom:
 
     def select_cell(self, cell_range: str) -> bool:
         """Seleciona e ativa uma célula ou intervalo. Ex: xl.select_cell('A1') ou xl.select_cell('B2:D5')"""
+        self._ws.Activate()
         self._ws.Range(cell_range).Select()
         return True
 
     def activate_cell(self, cell_range: str) -> bool:
         """Ativa uma célula (sem selecionar o intervalo)."""
+        self._ws.Activate()
         self._ws.Range(cell_range).Activate()
         return True
 
