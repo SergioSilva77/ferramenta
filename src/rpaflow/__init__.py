@@ -26,6 +26,7 @@ __all__ = [
     "excel_com",
     "browser",
     "desktop",
+    "log",
     "files",
     "api",
     "email",
@@ -40,5 +41,11 @@ except ImportError:
 # Desktop requer pyautogui, opencv-python, pillow
 try:
     from rpaflow import desktop
+except ImportError:
+    pass
+
+# Log requer loguru
+try:
+    from rpaflow import log
 except ImportError:
     pass

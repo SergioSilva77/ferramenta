@@ -21,9 +21,27 @@ Biblioteca Python modular para automação RPA.
 | [excel_com](docs/modulos/excel_com.md) | `pip install rpaflow[excel-com]` | Automação Excel via COM (Windows) - 60+ métodos |
 | [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador - recursive iframe |
 | [desktop](docs/modulos/desktop.md) | `pip install rpaflow[desktop]` | Automação via reconhecimento de imagem |
+| [log](docs/modulos/log.md) | `pip install rpaflow[log]` | Logging profissional (inspirado no Serilog) |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
+
+## Quick Start - Log
+
+```bash
+pip install rpaflow[log]
+```
+
+```python
+from rpaflow.log import Log
+
+log = Log(path="C:/logs/meu_bot.log", level="DEBUG", json=True)
+
+log = log.bind(bot="vendas", user="admin")
+log.info("Iniciando robô")
+log.error("Falha na conexão", host="localhost")
+log.success("Robô finalizado")
+```
 
 ## Quick Start - Desktop
 
