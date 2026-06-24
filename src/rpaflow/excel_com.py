@@ -445,6 +445,13 @@ class ExcelCom:
             tbl.AutoFilterMode = False
         return True
 
+    def remove_column_filter(self, table_name: str, column, ignore_case: bool = True) -> bool:
+        """Remove filtro de uma coluna específica (mostra todos os valores)."""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
+        tbl = self._ws.ListObjects(table_name)
+        tbl.Range.AutoFilter(Field=col_idx)
+        return True
+
     def sort_column(self, table_name: str, column, order: str = "asc", ignore_case: bool = True) -> bool:
         """Classifica coluna. order='asc' ou 'desc'."""
         col_idx = self._get_column_index(table_name, column, ignore_case)

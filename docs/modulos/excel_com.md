@@ -10,6 +10,49 @@ Diferente do módulo [Excel](excel.md) (openpyxl), o Excel COM pode executar mac
 pip install rpaflow[excel-com]
 ```
 
+## Como Usar (Passo a Passo)
+
+```python
+# 1. Importar
+from rpaflow.excel_com import ExcelCom
+
+# 2. Criar instância (visible=True mostra o Excel)
+xl = ExcelCom(visible=True)
+
+# 3. Abrir arquivo
+xl.open("C:/dados/vendas.xlsx")
+
+# 4. Selecionar sheet
+xl.select_sheet("Dados")
+
+# 5. Ler dados
+valor = xl.get_value("A1")                    # Lê célula A1
+dados = xl.read_table("Vendas")                # Lê tabela completa
+filtrados = xl.read_filtered_table("Vendas")   # Lê só linhas visíveis
+
+# 6. Escrever dados
+xl.set_value("A1", "Total")                   # Escreve na célula
+xl.set_formula("A2", "=SUM(B2:B10)")          # Insere fórmula
+
+# 7. Filtrar tabela
+xl.filter_column("Vendas", "Status", "Aprovado")        # Filtra por nome da coluna
+xl.filter_column_values("Vendas", "Tipo", ["PCD", "PJ"]) # Filtra por lista
+xl.filter_column_number("Vendas", "Valor", ">1000")       # Filtro numérico
+xl.sort_column("Vendas", "Valor", order="desc")           # Ordena
+
+# 8. Limpar filtros
+xl.clear_filters("Vendas")                     # Limpa TODOS
+xl.remove_column_filter("Vendas", "Status")    # Limpa SÓ uma coluna
+
+# 9. Executar macro
+xl.run_macro("FormatarRelatorio")
+
+# 10. Salvar e fechar
+xl.save()
+xl.close()
+xl.quit()
+```
+
 ## Exemplo Rápido
 
 ```python
@@ -264,7 +307,8 @@ xl.quit()
 | `filter_column_number()` | table, column, criteria, ignore_case | Filtro numérico (>, <, >=, <=) |
 | `filter_column_color()` | table, column, color, type, ignore_case | Filtrar por cor (fill/font) |
 | `filter_column_blanks()` | table, column, exclude_empty, ignore_case | Filtrar vazios/não-vazios |
-| `clear_filters()` | table | Limpa todos os filtros |
+| `clear_filters()` | table | Limpa TODOS os filtros da tabela |
+| `remove_column_filter()` | table, column, ignore_case | Remove filtro de uma coluna específica |
 | `sort_column()` | table, column, order, ignore_case | Classificar (asc/desc) |
 
 #### Parâmetros de Coluna
@@ -274,18 +318,55 @@ xl.quit()
 | `column` | `int` ou `str` | Índice (1, 2, 3) ou nome ("Status", "Valor") |
 | `ignore_case` | `bool` | Ignora case e espaços (padrão: `True`) |
 
+#### Como Chamar os Métodos
+
 ```python
-# Por índice
-xl.filter_column("Vendas", 1, "Aprovado")
+from rpaflow.excel_com import ExcelCom
 
-# Por nome (ignora case e espaços por padrão)
-xl.filter_column("Vendas", "Status", "Aprovado")
+# 1. Criar instância
+xl = ExcelCom(visible=True)
 
-# Na planilha: "       Status       " → encontra com "Status"
-# Na planilha: "status" → encontra com "Status"
+# 2. Abrir arquivo
+xl.open("C:/dados/vendas.xlsx")
 
-# Case sensitive (ignora=False)
-xl.filter_column("Vendas", "Status", "Aprovado", ignore_case=False)
+# 3. Selecionar sheet
+xl.select_sheet("Dados")
+
+# 4. Usar filtros
+xl.filter_column("Vendas", "Status", "Aprovado")           # Por nome
+xl.filter_column("Vendas", 1, "Aprovado")                   # Por índice
+xl.filter_column_values("Vendas", "Tipo", ["PCD", "PJ"])    # Lista
+xl.filter_column_number("Vendas", "Valor", ">1000")          # Numérico
+xl.filter_column_exclude("Vendas", "Tipo", ["PF"])           # Excluir
+xl.filter_column_blanks("Vendas", "Email")                   # Não vazios
+xl.filter_column_color("Vendas", "Status", 0xFFFF, "fill")   # Cor
+
+# 5. Ordenar
+xl.sort_column("Vendas", "Valor", order="desc")
+
+# 6. Ler dados filtrados
+dados = xl.read_filtered_table("Vendas")
+
+# 7. Limpar filtros
+xl.clear_filters("Vendas")                           # Limpa TODOS
+xl.remove_column_filter("Vendas", "Status")           # Limpa SÓ uma coluna
+
+# 8. Salvar e fechar
+xl.save()
+xl.close()
+xl.quit()
+```
+
+#### Diferença: clear_filters vs remove_column_filter
+
+```python
+# clear_filters() - Remove TODOS os filtros da tabela
+xl.clear_filters("Vendas")
+
+# remove_column_filter() - Remove filtro de UMA coluna específica
+# (mantém filtros nas outras colunas)
+xl.remove_column_filter("Vendas", "Status")
+xl.remove_column_filter("Vendas", 1)
 ```
 
 #### Operadores de Filtro
