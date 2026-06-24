@@ -17,7 +17,8 @@ Biblioteca Python modular para automação RPA.
 | Módulo | pip install | Descrição |
 |--------|-------------|-----------|
 | [sql](docs/modulos/sql.md) | `pip install rpaflow[sql]` | MySQL, PostgreSQL, SQL Server, SQLite |
-| [excel](docs/modulos/excel.md) | `pip install rpaflow[excel]` | Leitura e escrita de planilhas |
+| [excel](docs/modulos/excel.md) | `pip install rpaflow[excel]` | Leitura e escrita de planilhas (openpyxl) |
+| [excel_com](docs/modulos/excel_com.md) | `pip install rpaflow[excel-com]` | Automação Excel via COM (Windows) |
 | [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |

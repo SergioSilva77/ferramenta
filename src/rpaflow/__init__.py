@@ -23,8 +23,15 @@ __all__ = [
     "EmailError",
     "sql",
     "excel",
+    "excel_com",
     "browser",
     "files",
     "api",
     "email",
 ]
+
+# Excel COM só está disponível no Windows
+try:
+    from rpaflow import excel_com
+except ImportError:
+    pass

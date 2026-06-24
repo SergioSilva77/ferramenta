@@ -3,7 +3,8 @@
 | Módulo | Descrição | pip install |
 |--------|-----------|-------------|
 | [SQL](modulos/sql.md) | MySQL, PostgreSQL, SQL Server, SQLite | `pip install rpaflow[sql]` |
-| [Excel](modulos/excel.md) | Leitura e escrita de planilhas | `pip install rpaflow[excel]` |
+| [Excel](modulos/excel.md) | Leitura e escrita de planilhas (openpyxl) | `pip install rpaflow[excel]` |
+| [Excel COM](modulos/excel_com.md) | Automação Excel via COM (Windows) | `pip install rpaflow[excel-com]` |
 | [Browser](modulos/browser.md) | Automação de navegador | `pip install rpaflow[browser]` |
 | [Files](modulos/files.md) | Operações com arquivos | `pip install rpaflow[files]` |
 | [API](modulos/api.md) | Requisições HTTP/REST | `pip install rpaflow[api]` |
