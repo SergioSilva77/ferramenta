@@ -10,7 +10,7 @@ from rpaflow._exceptions import (
     EmailError,
 )
 
-from rpaflow import sql, excel, browser, files, api, email
+from rpaflow import sql, excel, browser, files, api, email, ini
 
 __version__ = "0.1.0"
 __all__ = [
@@ -27,6 +27,7 @@ __all__ = [
     "browser",
     "desktop",
     "log",
+    "ini",
     "files",
     "api",
     "email",

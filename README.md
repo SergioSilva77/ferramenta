@@ -22,9 +22,29 @@ Biblioteca Python modular para automação RPA.
 | [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador - recursive iframe |
 | [desktop](docs/modulos/desktop.md) | `pip install rpaflow[desktop]` | Automação via reconhecimento de imagem |
 | [log](docs/modulos/log.md) | `pip install rpaflow[log]` | Logging profissional (inspirado no Serilog) |
+| [ini](docs/modulos/ini.md) | `pip install rpaflow[ini]` | Leitura e escrita de arquivos .ini |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
+
+## Quick Start - INI
+
+```bash
+pip install rpaflow[ini]
+```
+
+```python
+from rpaflow.ini import Ini
+
+ini = Ini("C:/config/robô.ini")
+
+host = ini.get("database", "host")
+port = ini.get_int("database", "port")
+debug = ini.get_bool("app", "debug")
+
+ini.set("database", "host", "192.168.1.100")
+ini.save()
+```
 
 ## Quick Start - Log
 
