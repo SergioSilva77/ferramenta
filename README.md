@@ -13,6 +13,7 @@ Linguagem de programação para automação RPA.
 | [05 - Plugins](docs/05-plugins.md) | Sistema de plugins extensíveis |
 | [06 - Exemplos](docs/06-exemplos.md) | Scripts de exemplo |
 | [07 - Roadmap](docs/07-roadmap.md) | Ordem de implementação |
+| [08 - Como Usar](docs/08-uso.md) | Como criar e executar scripts |
 
 ## Quick Start
 
