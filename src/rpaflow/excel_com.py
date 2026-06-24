@@ -17,6 +17,39 @@ class ExcelCom:
         self._wb = None
         self._ws = None
 
+    # ========== HELPERS INTERNOS ==========
+
+    def _ensure_full_activation(self):
+        """Garante a cadeia completa: App > Workbook > Worksheet."""
+        was_visible = self._xl.Visible
+        if not was_visible:
+            self._xl.Visible = True
+        try:
+            self._wb.Activate()
+            self._ws.Activate()
+        except Exception:
+            self._xl.Visible = was_visible
+            raise
+
+    def _get_column_letter(self, col: int) -> str:
+        """Converte número da coluna para letra. Ex: 1 -> 'A', 27 -> 'AA'"""
+        letter = ""
+        while col > 0:
+            col, remainder = divmod(col - 1, 26)
+            letter = chr(65 + remainder) + letter
+        return letter
+
+    def _get_column_unique_values(self, table_name: str, column: int) -> list:
+        """Retorna valores únicos de uma coluna da tabela."""
+        tbl = self._ws.ListObjects(table_name)
+        col_data = tbl.ListColumns(column).DataBodyRange
+        values = set()
+        for r in range(1, col_data.Rows.Count + 1):
+            val = col_data.Cells(r, 1).Value
+            if val is not None:
+                values.add(val)
+        return list(values)
+
     # ========== WORKBOOK ==========
 
     def open(self, path: str, readonly: bool = False) -> bool:
@@ -79,14 +112,14 @@ class ExcelCom:
         return True
 
     def select_cell(self, cell_range: str) -> bool:
-        """Seleciona e ativa uma célula ou intervalo. Ex: xl.select_cell('A1') ou xl.select_cell('B2:D5')"""
-        self._ws.Activate()
+        """Seleciona e ativa uma célula ou intervalo."""
+        self._ensure_full_activation()
         self._ws.Range(cell_range).Select()
         return True
 
     def activate_cell(self, cell_range: str) -> bool:
         """Ativa uma célula (sem selecionar o intervalo)."""
-        self._ws.Activate()
+        self._ensure_full_activation()
         self._ws.Range(cell_range).Activate()
         return True
 
@@ -118,6 +151,14 @@ class ExcelCom:
         self._ws.Columns(columns).AutoFit()
         return True
 
+    def get_cell_address(self, row: int, col: int) -> str:
+        """Retorna endereço da célula. Ex: (1, 1) -> 'A1'"""
+        return self._ws.Cells(row, col).Address.replace("$", "")
+
+    def get_cell_by_address(self, address: str):
+        """Lê valor por endereço. Ex: 'A1'"""
+        return self._ws.Range(address).Value
+
     # ========== SHEET ==========
 
     def select_sheet(self, name_or_index) -> bool:
@@ -126,7 +167,7 @@ class ExcelCom:
             self._ws = self._wb.Worksheets(name_or_index)
         else:
             self._ws = self._wb.Worksheets(name_or_index)
-        self._ws.Activate()
+        self._ensure_full_activation()
         return True
 
     def list_sheets(self) -> list:
@@ -164,6 +205,80 @@ class ExcelCom:
         self._wb.Worksheets(name).Visible = visible
         return True
 
+    def count_hidden_sheets(self) -> int:
+        """Conta sheets ocultas."""
+        count = 0
+        for i in range(1, self._wb.Worksheets.Count + 1):
+            if not self._wb.Worksheets(i).Visible:
+                count += 1
+        return count
+
+    def list_hidden_sheets(self) -> list:
+        """Lista sheets ocultas."""
+        hidden = []
+        for i in range(1, self._wb.Worksheets.Count + 1):
+            if not self._wb.Worksheets(i).Visible:
+                hidden.append(self._wb.Worksheets(i).Name)
+        return hidden
+
+    def list_visible_sheets(self) -> list:
+        """Lista sheets visíveis."""
+        visible = []
+        for i in range(1, self._wb.Worksheets.Count + 1):
+            if self._wb.Worksheets(i).Visible:
+                visible.append(self._wb.Worksheets(i).Name)
+        return visible
+
+    # ========== OCULTAR COLUNAS/LINHAS ==========
+
+    def hide_columns(self, columns: str) -> bool:
+        """Oculta colunas. Ex: xl.hide_columns('B:D')"""
+        self._ws.Columns(columns).Hidden = True
+        return True
+
+    def show_columns(self, columns: str) -> bool:
+        """Mostra colunas ocultas."""
+        self._ws.Columns(columns).Hidden = False
+        return True
+
+    def hide_rows(self, start_row: int, end_row: int = None) -> bool:
+        """Oculta linhas. Ex: xl.hide_rows(5, 10) ou xl.hide_rows(5)"""
+        if end_row:
+            self._ws.Rows(f"{start_row}:{end_row}").Hidden = True
+        else:
+            self._ws.Rows(start_row).Hidden = True
+        return True
+
+    def show_rows(self, start_row: int, end_row: int = None) -> bool:
+        """Mostra linhas ocultas."""
+        if end_row:
+            self._ws.Rows(f"{start_row}:{end_row}").Hidden = False
+        else:
+            self._ws.Rows(start_row).Hidden = False
+        return True
+
+    def list_hidden_columns(self) -> list:
+        """Lista colunas ocultas (letras)."""
+        hidden = []
+        for c in range(1, self._ws.UsedRange.Columns.Count + 1):
+            if self._ws.Columns(c).Hidden:
+                hidden.append(self._get_column_letter(c))
+        return hidden
+
+    def list_hidden_rows(self) -> list:
+        """Lista linhas ocultas (números)."""
+        hidden = []
+        for r in range(1, self._ws.UsedRange.Rows.Count + 1):
+            if self._ws.Rows(r).Hidden:
+                hidden.append(r)
+        return hidden
+
+    # ========== LISTAR TABELAS ==========
+
+    def list_tables(self) -> list:
+        """Lista todas as tabelas (ListObjects) da sheet atual."""
+        return [self._ws.ListObjects(i).Name for i in range(1, self._ws.ListObjects.Count + 1)]
+
     # ========== TABELA (ListObject) ==========
 
     def read_table(self, table_name: str) -> list:
@@ -171,6 +286,25 @@ class ExcelCom:
         tbl = self._ws.ListObjects(table_name)
         data = tbl.DataBodyRange
         return [[data.Cells(r, c).Value for c in range(1, data.Columns.Count + 1)] for r in range(1, data.Rows.Count + 1)]
+
+    def read_filtered_table(self, table_name: str) -> list:
+        """Lê apenas linhas visíveis (não filtradas) da tabela."""
+        tbl = self._ws.ListObjects(table_name)
+        data = tbl.DataBodyRange
+        linhas = []
+        for r in range(1, data.Rows.Count + 1):
+            if data.Rows(r).Hidden:
+                continue
+            linha = []
+            for c in range(1, data.Columns.Count + 1):
+                val = data.Cells(r, c).Value
+                linha.append(val if val is not None else "")
+            linhas.append(linha)
+        return linhas
+
+    def count_filtered_rows(self, table_name: str) -> int:
+        """Conta linhas visíveis (não filtradas) da tabela."""
+        return len(self.read_filtered_table(table_name))
 
     def read_table_header(self, table_name: str) -> list:
         """Lê cabeçalho da tabela."""
@@ -199,6 +333,127 @@ class ExcelCom:
         """Atualiza todas as conexões e tabelas."""
         self._wb.RefreshAll()
         return True
+
+    # ========== FILTROS DE TABELA ==========
+
+    def filter_column(self, table_name: str, column: int, criteria: str) -> bool:
+        """Filtra coluna. Ex: xl.filter_column('Vendas', 1, 'Aprovado')"""
+        tbl = self._ws.ListObjects(table_name)
+        tbl.Range.AutoFilter(Field=column, Criteria1=criteria)
+        return True
+
+    def filter_column_values(self, table_name: str, column: int, values: list) -> bool:
+        """Filtra por lista de valores. Ex: xl.filter_column_values('Vendas', 1, ['PCD', 'PJ'])"""
+        tbl = self._ws.ListObjects(table_name)
+        tbl.Range.AutoFilter(Field=column, Criteria1=values, Operator=7)  # xlFilterValues
+        return True
+
+    def filter_column_exclude(self, table_name: str, column: int, values: list) -> bool:
+        """Esconde valores específicos."""
+        all_values = self._get_column_unique_values(table_name, column)
+        visible = [v for v in all_values if v not in values]
+        return self.filter_column_values(table_name, column, visible)
+
+    def filter_column_number(self, table_name: str, column: int, criteria: str) -> bool:
+        """Filtro numérico. Ex: xl.filter_column_number('Vendas', 3, '>1000')"""
+        tbl = self._ws.ListObjects(table_name)
+        tbl.Range.AutoFilter(Field=column, Criteria1=criteria)
+        return True
+
+    def filter_column_color(self, table_name: str, column: int, color: int, type: str = "fill") -> bool:
+        """Filtra por cor. Ex: xl.filter_column_color('Vendas', 1, 0xFFFF, 'fill')"""
+        tbl = self._ws.ListObjects(table_name)
+        operator = 8 if type == "fill" else 10  # xlFilterCellColor=8, xlFilterFontColor=10
+        tbl.Range.AutoFilter(Field=column, Operator=operator, Criteria1=color)
+        return True
+
+    def filter_column_blanks(self, table_name: str, column: int, exclude_empty: bool = True) -> bool:
+        """Filtra vazios. exclude_empty=True mostra só não-vazios."""
+        tbl = self._ws.ListObjects(table_name)
+        if exclude_empty:
+            tbl.Range.AutoFilter(Field=column, Criteria1="<>")
+        else:
+            tbl.Range.AutoFilter(Field=column, Criteria1="=")
+        return True
+
+    def clear_filters(self, table_name: str) -> bool:
+        """Limpa todos os filtros da tabela."""
+        tbl = self._ws.ListObjects(table_name)
+        if tbl.AutoFilterMode:
+            tbl.AutoFilterMode = False
+        return True
+
+    def sort_column(self, table_name: str, column: int, order: str = "asc") -> bool:
+        """Classifica coluna. order='asc' ou 'desc'."""
+        tbl = self._ws.ListObjects(table_name)
+        sort = self._ws.Sort
+        sort.SortFields.Clear()
+        sort.SortFields.Add(
+            Key=tbl.ListColumns(column).Range,
+            SortOn=0,
+            Order=1 if order == "asc" else 2,
+            DataOption=0
+        )
+        sort.SetRange(tbl.Range)
+        sort.Header = 1  # xlYes
+        sort.Apply()
+        return True
+
+    # ========== TABELA DINÂMICA (PivotTable) ==========
+
+    def list_pivot_tables(self, sheet: str = None) -> list:
+        """Lista PivotTables da sheet."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        return [ws.PivotTables(i).Name for i in range(1, ws.PivotTables().Count + 1)]
+
+    def refresh_pivot_table(self, name: str, sheet: str = None) -> bool:
+        """Atualiza PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        ws.PivotTables(name).RefreshTable()
+        return True
+
+    def filter_pivot_values(self, pivot_name: str, field_name: str, visible_items: list, sheet: str = None) -> bool:
+        """Filtra itens visíveis da PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        pt = ws.PivotTables(pivot_name)
+        pf = pt.PivotFields(field_name)
+        pf.ClearAllFilters()
+        for i in range(1, pf.PivotItems().Count + 1):
+            pi = pf.PivotItems(i)
+            pi.Visible = pi.Name in visible_items
+        return True
+
+    def filter_pivot_exclude(self, pivot_name: str, field_name: str, exclude_items: list, sheet: str = None) -> bool:
+        """Esconde itens específicos da PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        pt = ws.PivotTables(pivot_name)
+        pf = pt.PivotFields(field_name)
+        pf.ClearAllFilters()
+        for i in range(1, pf.PivotItems().Count + 1):
+            pi = pf.PivotItems(i)
+            pi.Visible = pi.Name not in exclude_items
+        return True
+
+    def clear_pivot_filters(self, pivot_name: str, sheet: str = None) -> bool:
+        """Limpa filtros da PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        pt = ws.PivotTables(pivot_name)
+        for i in range(1, pt.PivotFields().Count + 1):
+            pt.PivotFields(i).ClearAllFilters()
+        return True
+
+    def set_pivot_page_filter(self, pivot_name: str, field_name: str, value: str, sheet: str = None) -> bool:
+        """Define filtro de página da PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        ws.PivotTables(pivot_name).PivotFields(field_name).CurrentPage = value
+        return True
+
+    def get_pivot_field_items(self, pivot_name: str, field_name: str, sheet: str = None) -> list:
+        """Lista itens de um campo da PivotTable."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        pf = ws.PivotTables(pivot_name).PivotFields(field_name)
+        return [{"name": pf.PivotItems(i).Name, "visible": pf.PivotItems(i).Visible}
+                for i in range(1, pf.PivotItems().Count + 1)]
 
     # ========== CONEXÕES ==========
 
@@ -253,6 +508,16 @@ class ExcelCom:
         ws = self._wb.Worksheets(sheet) if sheet else self._ws
         return ws.UsedRange.Columns.Count
 
+    def get_last_used_row(self, sheet: str = None) -> int:
+        """Retorna a última linha com dados (precisa)."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        return ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+
+    def get_last_used_row_in_column(self, column: str, sheet: str = None) -> int:
+        """Retorna a última linha populada de uma coluna específica."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        return ws.Cells(ws.Rows.Count, column).End(-4162).Row  # xlUp = -4162
+
     # ========== APP / WINDOW ==========
 
     def set_visible(self, visible: bool = True) -> bool:
@@ -299,52 +564,6 @@ class ExcelCom:
         else:
             ws.Unprotect()
         return True
-
-    # ========== OCULTAR COLUNAS/LINHAS ==========
-
-    def hide_columns(self, columns: str) -> bool:
-        """Oculta colunas. Ex: xl.hide_columns('B:D')"""
-        self._ws.Columns(columns).Hidden = True
-        return True
-
-    def show_columns(self, columns: str) -> bool:
-        """Mostra colunas ocultas."""
-        self._ws.Columns(columns).Hidden = False
-        return True
-
-    def hide_rows(self, start_row: int, end_row: int = None) -> bool:
-        """Oculta linhas. Ex: xl.hide_rows(5, 10) ou xl.hide_rows(5)"""
-        if end_row:
-            self._ws.Rows(f"{start_row}:{end_row}").Hidden = True
-        else:
-            self._ws.Rows(start_row).Hidden = True
-        return True
-
-    def show_rows(self, start_row: int, end_row: int = None) -> bool:
-        """Mostra linhas ocultas."""
-        if end_row:
-            self._ws.Rows(f"{start_row}:{end_row}").Hidden = False
-        else:
-            self._ws.Rows(start_row).Hidden = False
-        return True
-
-    # ========== LISTAR TABELAS ==========
-
-    def list_tables(self) -> list:
-        """Lista todas as tabelas (ListObjects) da sheet atual."""
-        return [self._ws.ListObjects(i).Name for i in range(1, self._ws.ListObjects.Count + 1)]
-
-    # ========== ÚLTIMA LINHA POPULADA ==========
-
-    def get_last_used_row(self, sheet: str = None) -> int:
-        """Retorna a última linha com dados (precisa)."""
-        ws = self._wb.Worksheets(sheet) if sheet else self._ws
-        return ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
-
-    def get_last_used_row_in_column(self, column: str, sheet: str = None) -> int:
-        """Retorna a última linha populada de uma coluna específica."""
-        ws = self._wb.Worksheets(sheet) if sheet else self._ws
-        return ws.Cells(ws.Rows.Count, column).End(-4162).Row  # xlUp = -4162
 
     # ========== FORMATAR COLUNA/CÉLULA ==========
 
