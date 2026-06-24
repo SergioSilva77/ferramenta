@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rpaflow"
+version = "0.1.0"
+description = "Biblioteca Python modular para automação RPA"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+sql = ["pymysql>=1.0"]
+excel = ["openpyxl>=3.1"]
+browser = ["playwright>=1.40"]
+api = ["httpx>=0.25"]
+all = ["rpaflow[sql,excel,browser,api]"]
+dev = ["pytest>=7.0", "pytest-cov"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rpaflow"]
