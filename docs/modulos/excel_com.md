@@ -148,6 +148,8 @@ xl.quit()
 | `set_value()` | cell_range, value | Escreve valor |
 | `get_cell()` | row, col | Lê valor por linha/coluna (1-based) |
 | `set_cell()` | row, col, value | Escreve valor por linha/coluna |
+| `select_cell()` | cell_range | Seleciona e ativa célula/intervalo |
+| `activate_cell()` | cell_range | Ativa célula (sem selecionar) |
 | `set_formula()` | cell_range, formula | Insere fórmula |
 | `set_formula_local()` | cell_range, formula | Insere fórmula local (pt-BR) |
 | `clear()` | cell_range | Limpa conteúdo |
