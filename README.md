@@ -20,9 +20,31 @@ Biblioteca Python modular para automação RPA.
 | [excel](docs/modulos/excel.md) | `pip install rpaflow[excel]` | Leitura e escrita de planilhas (openpyxl) |
 | [excel_com](docs/modulos/excel_com.md) | `pip install rpaflow[excel-com]` | Automação Excel via COM (Windows) - 60+ métodos |
 | [browser](docs/modulos/browser.md) | `pip install rpaflow[browser]` | Automação de navegador - recursive iframe |
+| [desktop](docs/modulos/desktop.md) | `pip install rpaflow[desktop]` | Automação via reconhecimento de imagem |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
+
+## Quick Start - Desktop
+
+```bash
+pip install rpaflow[desktop]
+```
+
+```python
+from rpaflow.desktop import Desktop
+
+desktop = Desktop()
+
+# Localizar e clicar
+desktop.click_image("C:/imgs/botao.png")
+
+# Com confiança
+desktop.click_image("C:/imgs/botao.png", confidence=0.90)
+
+# Encontrar todas as ocorrências
+results = desktop.find_all_images("C:/imgs/icone.png")
+```
 
 ## Quick Start - Browser
 
@@ -40,12 +62,8 @@ browser.start("https://site.com", type="playwright")
 browser.click("#botao")
 browser.type_text("#campo", "texto")
 
-# Frame explícito
-browser.click("#botao", frame="#iframe-1")
-
 # Recursive (busca em todos os iframes)
 browser.click("#botao", recursive=True)
-browser.select_option("#dropdown", "Opção 1", recursive=True)
 
 browser.close()
 ```
@@ -62,13 +80,8 @@ from rpaflow.excel_com import ExcelCom
 xl = ExcelCom(visible=True)
 xl.open("C:/dados/vendas.xlsx")
 
-# Filtrar tabela
 xl.filter_column_values("Vendas", 1, ["PCD"])
-xl.filter_column_exclude("Vendas", 1, ["PF", "PJ"])
 xl.sort_column("Vendas", 3, order="desc")
-
-# Ler apenas linhas visíveis
-dados = xl.read_filtered_table("Vendas")
 
 xl.save()
 xl.close()

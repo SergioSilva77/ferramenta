@@ -25,6 +25,7 @@ __all__ = [
     "excel",
     "excel_com",
     "browser",
+    "desktop",
     "files",
     "api",
     "email",
@@ -33,5 +34,11 @@ __all__ = [
 # Excel COM só está disponível no Windows
 try:
     from rpaflow import excel_com
+except ImportError:
+    pass
+
+# Desktop requer pyautogui, opencv-python, pillow
+try:
+    from rpaflow import desktop
 except ImportError:
     pass
