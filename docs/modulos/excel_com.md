@@ -43,7 +43,7 @@ valor = xl.get_value("A1")
 print(f"Valor: {valor}")
 
 # Ler intervalo
-dados = xl.get_range("A1:C10")
+dados = xl.get_value("A1:C10")
 
 # Escrever valor
 xl.set_value("D1", "Total")
@@ -55,6 +55,9 @@ xl.set_formula("D2", "=SUM(A2:A10)")
 xl.set_formula_local("D2", "=SOMA(A2:A10)")
 
 # Trabalhar com tabelas
+tabelas = xl.list_tables()
+print(f"Tabelas: {tabelas}")
+
 linhas = xl.count_table_rows("VendasHeader")
 print(f"Linhas na tabela: {linhas}")
 
@@ -64,6 +67,23 @@ print(f"Colunas: {cabecalho}")
 corpo = xl.read_table("VendasHeader")
 for linha in corpo:
     print(linha)
+
+# Última linha populada
+ultima_planilha = xl.get_last_used_row()
+ultima_coluna_a = xl.get_last_used_row_in_column("A")
+print(f"Última linha planilha: {ultima_planilha}")
+print(f"Última linha coluna A: {ultima_coluna_a}")
+
+# Formatar coluna/célula
+xl.set_column_format("B", "#,##0.00")
+xl.set_column_format("C", "R$ #,##0.00")
+xl.set_cell_format("D1", "dd/mm/yyyy")
+
+# Ocultar/mostrar colunas e linhas
+xl.hide_columns("B:D")
+xl.show_columns("B:D")
+xl.hide_rows(5, 10)
+xl.show_rows(5, 10)
 
 # Atualizar dados
 xl.refresh_all()
@@ -150,6 +170,7 @@ xl.quit()
 
 | Método | Parâmetros | Descrição |
 |--------|-----------|-----------|
+| `list_tables()` | — | Lista tabelas da sheet atual |
 | `read_table()` | table_name | Lê corpo da tabela |
 | `read_table_header()` | table_name | Lê cabeçalho |
 | `read_table_column()` | table_name, column_name | Lê coluna |
@@ -179,8 +200,38 @@ xl.quit()
 |--------|-----------|-----------|
 | `get_filename()` | — | Nome do arquivo |
 | `get_filepath()` | — | Caminho completo |
-| `get_last_row()` | sheet | Última linha usada |
+| `get_last_row()` | sheet | Última linha usada (UsedRange) |
 | `get_last_col()` | sheet | Última coluna usada |
+| `get_last_used_row()` | sheet | Última linha com dados (precisa) |
+| `get_last_used_row_in_column()` | column, sheet | Última linha populada de uma coluna |
+
+### Ocultar Colunas/Linhas
+
+| Método | Parâmetros | Descrição |
+|--------|-----------|-----------|
+| `hide_columns()` | columns | Oculta colunas. Ex: `'B:D'` |
+| `show_columns()` | columns | Mostra colunas ocultas |
+| `hide_rows()` | start_row, end_row | Oculta linhas |
+| `show_rows()` | start_row, end_row | Mostra linhas ocultas |
+
+### Formatação
+
+| Método | Parâmetros | Descrição |
+|--------|-----------|-----------|
+| `set_column_format()` | column, number_format | Formata tipo da coluna |
+| `set_cell_format()` | cell_range, number_format | Formata tipo da célula |
+
+#### Formatos Comuns
+
+| Formato | Descrição |
+|---------|-----------|
+| `#,##0.00` | Número com 2 casas decimais |
+| `0%` | Porcentagem |
+| `dd/mm/yyyy` | Data |
+| `R$ #,##0.00` | Moeda (BRL) |
+| `$ #,##0.00` | Moeda (USD) |
+| `@` | Texto |
+| `0` | Inteiro |
 
 ### App / Window
 

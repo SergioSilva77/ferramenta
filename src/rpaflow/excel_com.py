@@ -287,3 +287,61 @@ class ExcelCom:
         else:
             ws.Unprotect()
         return True
+
+    # ========== OCULTAR COLUNAS/LINHAS ==========
+
+    def hide_columns(self, columns: str) -> bool:
+        """Oculta colunas. Ex: xl.hide_columns('B:D')"""
+        self._ws.Columns(columns).Hidden = True
+        return True
+
+    def show_columns(self, columns: str) -> bool:
+        """Mostra colunas ocultas."""
+        self._ws.Columns(columns).Hidden = False
+        return True
+
+    def hide_rows(self, start_row: int, end_row: int = None) -> bool:
+        """Oculta linhas. Ex: xl.hide_rows(5, 10) ou xl.hide_rows(5)"""
+        if end_row:
+            self._ws.Rows(f"{start_row}:{end_row}").Hidden = True
+        else:
+            self._ws.Rows(start_row).Hidden = True
+        return True
+
+    def show_rows(self, start_row: int, end_row: int = None) -> bool:
+        """Mostra linhas ocultas."""
+        if end_row:
+            self._ws.Rows(f"{start_row}:{end_row}").Hidden = False
+        else:
+            self._ws.Rows(start_row).Hidden = False
+        return True
+
+    # ========== LISTAR TABELAS ==========
+
+    def list_tables(self) -> list:
+        """Lista todas as tabelas (ListObjects) da sheet atual."""
+        return [self._ws.ListObjects(i).Name for i in range(1, self._ws.ListObjects.Count + 1)]
+
+    # ========== ÚLTIMA LINHA POPULADA ==========
+
+    def get_last_used_row(self, sheet: str = None) -> int:
+        """Retorna a última linha com dados (precisa)."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        return ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+
+    def get_last_used_row_in_column(self, column: str, sheet: str = None) -> int:
+        """Retorna a última linha populada de uma coluna específica."""
+        ws = self._wb.Worksheets(sheet) if sheet else self._ws
+        return ws.Cells(ws.Rows.Count, column).End(-4162).Row  # xlUp = -4162
+
+    # ========== FORMATAR COLUNA/CÉLULA ==========
+
+    def set_column_format(self, column: str, number_format: str) -> bool:
+        """Formata tipo da coluna. Ex: xl.set_column_format('A', '#,##0.00')"""
+        self._ws.Columns(column).NumberFormat = number_format
+        return True
+
+    def set_cell_format(self, cell_range: str, number_format: str) -> bool:
+        """Formata tipo da célula. Ex: xl.set_cell_format('A1', 'dd/mm/yyyy')"""
+        self._ws.Range(cell_range).NumberFormat = number_format
+        return True
