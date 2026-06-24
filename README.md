@@ -23,9 +23,35 @@ Biblioteca Python modular para automação RPA.
 | [desktop](docs/modulos/desktop.md) | `pip install rpaflow[desktop]` | Automação via reconhecimento de imagem |
 | [log](docs/modulos/log.md) | `pip install rpaflow[log]` | Logging profissional (inspirado no Serilog) |
 | [ini](docs/modulos/ini.md) | `pip install rpaflow[ini]` | Leitura e escrita de arquivos .ini |
+| [json](docs/modulos/json.md) | `pip install rpaflow[json]` | Leitura e escrita de JSON com dot notation |
 | [files](docs/modulos/files.md) | `pip install rpaflow[files]` | Operações com arquivos |
 | [api](docs/modulos/api.md) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](docs/modulos/email.md) | `pip install rpaflow[email]` | Envio de emails SMTP |
+
+## Quick Start - JSON
+
+```bash
+pip install rpaflow[json]
+```
+
+```python
+from rpaflow.json import Json
+
+json = Json()
+data = json.load("config.json")
+
+# Dot notation
+data.user.name                                   # "Maria"
+data.user.address.city                           # "SP"
+
+# Iterar arrays
+for bot in data.bots:
+    print(f"Bot: {bot.name}, Enabled: {bot.enabled}")
+
+# Iterar dicionário
+for empresa, config in data.empresas.items():
+    print(f"{empresa}: {config.host}:{config.port}")
+```
 
 ## Quick Start - INI
 

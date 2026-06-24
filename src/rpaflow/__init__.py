@@ -28,6 +28,7 @@ __all__ = [
     "desktop",
     "log",
     "ini",
+    "json",
     "files",
     "api",
     "email",
@@ -48,5 +49,11 @@ except ImportError:
 # Log requer loguru
 try:
     from rpaflow import log
+except ImportError:
+    pass
+
+# JSON requer python-box
+try:
+    from rpaflow import json
 except ImportError:
     pass
