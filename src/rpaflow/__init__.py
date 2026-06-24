@@ -10,6 +10,8 @@ from rpaflow._exceptions import (
     EmailError,
 )
 
+from rpaflow import sql, excel, browser, files, api, email
+
 __version__ = "0.1.0"
 __all__ = [
     "RPAFlowError",
@@ -19,4 +21,10 @@ __all__ = [
     "BrowserError",
     "APIError",
     "EmailError",
+    "sql",
+    "excel",
+    "browser",
+    "files",
+    "api",
+    "email",
 ]
