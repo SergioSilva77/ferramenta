@@ -1,28 +1,44 @@
-# MinhaRPA
+# rpaflow
 
-Linguagem de programação para automação RPA.
+Biblioteca Python modular para automação RPA.
 
 ## Sumário
 
 | Documento | Descrição |
 |-----------|-----------|
 | [01 - Visão Geral](docs/01-visao-geral.md) | Objetivo e contexto do projeto |
-| [02 - Arquitetura](docs/02-arquitetura.md) | Estrutura do projeto e fluxo do interpretador |
-| [03 - Grammar](docs/03-grammar.md) | Grammar ANTLR completa |
-| [04 - Constructos](docs/04-constructos.md) | Sintaxe da linguagem (if, while, for, etc) |
-| [05 - Plugins](docs/05-plugins.md) | Sistema de plugins extensíveis |
-| [06 - Exemplos](docs/06-exemplos.md) | Scripts de exemplo |
-| [07 - Roadmap](docs/07-roadmap.md) | Ordem de implementação |
-| [08 - Como Usar](docs/08-uso.md) | Como criar e executar scripts |
+| [02 - Arquitetura](docs/02-arquitetura.md) | Estrutura do projeto e módulos |
+| [03 - Módulos](docs/03-modulos.md) | API completa de cada módulo |
+| [04 - Exemplos](docs/04-exemplos.md) | Scripts de exemplo |
+| [05 - Roadmap](docs/05-roadmap.md) | Ordem de implementação |
 
 ## Quick Start
 
-```rpa
-log --msg="Olá, mundo!"
+```bash
+pip install rpaflow
 ```
 
-## Stack
+```python
+from rpaflow import sql
 
-- **ANTLR4** — Gerador de Lexer/Parser
-- **Python** — Linguagem do interpretador
-- **Plugins** — Módulos extensíveis (browser, excel, banco, etc)
+sql.connect(host="localhost", user="root", password="123", database="vendas", type="mysql")
+sql.insert("clientes", {"nome": "João", "email": "joao@email.com"})
+sql.disconnect()
+```
+
+## Módulos
+
+| Módulo | pip install | Descrição |
+|--------|-------------|-----------|
+| `sql` | `pip install rpaflow[sql]` | Conectar, consultar, inserir, atualizar, deletar |
+| `excel` | `pip install rpaflow[excel]` | Abrir, ler, escrever, salvar planilhas |
+| `browser` | `pip install rpaflow[browser]` | Iniciar navegador, clicar, digitar, screenshot |
+| `files` | `pip install rpaflow[files]` | Ler, escrever, copiar, mover, deletar arquivos |
+| `api` | `pip install rpaflow[api]` | GET, POST, PUT, DELETE em APIs REST |
+| `email` | `pip install rpaflow[email]` | Enviar e ler emails |
+
+## Instalar Tudo
+
+```bash
+pip install rpaflow[all]
+```

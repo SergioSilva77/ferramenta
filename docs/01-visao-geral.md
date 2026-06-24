@@ -1,24 +1,48 @@
 # 01 - Visão Geral
 
-## O que é MinhaRPA
+## O que é rpaflow
 
-Linguagem de domínio específico (DSL) criada com ANTLR4 para automação de processos robóticos (RPA). Arquitetura modular com sistema de plugins — o core da linguagem é fixo, os comandos RPA são injetados via plugins conforme necessidade.
+Biblioteca Python modular para automação RPA. Inspiração no BotCity SDK — cada funcionalidade é um módulo importável via `pip install`.
 
 ## Objetivo
 
-Eliminar a necessidade de escrever boilerplate toda vez que um novo bot RPA é necessário. Em vez de 200+ linhas de Python/C#:
+Eliminar boilerplate em automações RPA. Em vez de escrever 200+ linhas toda vez:
 
-```rpa
-startBrowser --url="https://site.com" --type="playwright"
-click --selector="#login"
-typeText --selector="#user" --text="admin"
-openExcel --path="dados.xlsx"
-log --msg="Automação finalizada!"
+```python
+# Sem rpaflow
+import pymysql
+import openpyxl
+from playwright.sync_api import sync_playwright
+
+conn = pymysql.connect(host="localhost", user="root", password="123", database="vendas")
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM clientes")
+dados = cursor.fetchall()
+conn.close()
+
+wb = openpyxl.load_workbook("saida.xlsx")
+ws = wb.active
+for i, row in enumerate(dados, start=1):
+    ws.cell(row=i, column=1, value=row[0])
+wb.save("saida.xlsx")
 ```
 
-## Por que criar uma linguagem própria?
+```python
+# Com rpaflow
+from rpaflow import sql, excel
 
-- **Reutilização**: Comandos RPA prontos, sem reimplementar toda vez
-- **Legibilidade**: Scripts mais claros que código Python/C#
-- **Extensibilidade**: Novos comandos = novo plugin, sem tocar no core
-- **Manutenção**: Alterações no plugin afetam todos os bots que usam aquele comando
+sql.connect(host="localhost", user="root", password="123", database="vendas", type="mysql")
+dados = sql.select("clientes")
+sql.disconnect()
+
+excel.open("saida.xlsx")
+excel.write("Planilha1", range="A1", values=dados)
+excel.save("saida.xlsx")
+```
+
+## Por que rpaflow?
+
+- **Simples**: Uma linha para cada operação
+- **Modular**: Instala só o que precisa
+- **Extensível**: Adiciona novos módulos conforme necessidade
+- **Consistente**: Mesma API para todos os módulos
