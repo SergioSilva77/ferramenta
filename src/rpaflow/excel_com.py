@@ -39,10 +39,36 @@ class ExcelCom:
             letter = chr(65 + remainder) + letter
         return letter
 
-    def _get_column_unique_values(self, table_name: str, column: int) -> list:
-        """Retorna valores únicos de uma coluna da tabela."""
+    def _get_column_index(self, table_name: str, column, ignore_case: bool = True) -> int:
+        """Converte nome da coluna para índice (1-based). Aceita int ou str.
+
+        Args:
+            table_name: Nome da tabela
+            column: Índice (int) ou nome (str) da coluna
+            ignore_case: Se True, ignora case e espaços (padrão: True)
+        """
+        if isinstance(column, int):
+            return column
+
         tbl = self._ws.ListObjects(table_name)
-        col_data = tbl.ListColumns(column).DataBodyRange
+        col_name = column.strip() if ignore_case else column
+
+        for i in range(1, tbl.ListColumns.Count + 1):
+            tbl_col = tbl.ListColumns(i).Name
+            if ignore_case:
+                if tbl_col.strip().lower() == col_name.lower():
+                    return i
+            else:
+                if tbl_col == col_name:
+                    return i
+
+        raise ValueError(f"Coluna '{column}' não encontrada na tabela '{table_name}'")
+
+    def _get_column_unique_values(self, table_name: str, column, ignore_case: bool = True) -> list:
+        """Retorna valores únicos de uma coluna da tabela."""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
+        tbl = self._ws.ListObjects(table_name)
+        col_data = tbl.ListColumns(col_idx).DataBodyRange
         values = set()
         for r in range(1, col_data.Rows.Count + 1):
             val = col_data.Cells(r, 1).Value
@@ -366,44 +392,50 @@ class ExcelCom:
 
     # ========== FILTROS DE TABELA ==========
 
-    def filter_column(self, table_name: str, column: int, criteria: str) -> bool:
-        """Filtra coluna. Ex: xl.filter_column('Vendas', 1, 'Aprovado')"""
+    def filter_column(self, table_name: str, column, criteria: str, ignore_case: bool = True) -> bool:
+        """Filtra coluna. Ex: xl.filter_column('Vendas', 'Status', 'Aprovado')"""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
-        tbl.Range.AutoFilter(Field=column, Criteria1=criteria)
+        tbl.Range.AutoFilter(Field=col_idx, Criteria1=criteria)
         return True
 
-    def filter_column_values(self, table_name: str, column: int, values: list) -> bool:
-        """Filtra por lista de valores. Ex: xl.filter_column_values('Vendas', 1, ['PCD', 'PJ'])"""
+    def filter_column_values(self, table_name: str, column, values: list, ignore_case: bool = True) -> bool:
+        """Filtra por lista de valores. Ex: xl.filter_column_values('Vendas', 'Tipo', ['PCD', 'PJ'])"""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
-        tbl.Range.AutoFilter(Field=column, Criteria1=values, Operator=7)  # xlFilterValues
+        tbl.Range.AutoFilter(Field=col_idx, Criteria1=values, Operator=7)  # xlFilterValues
         return True
 
-    def filter_column_exclude(self, table_name: str, column: int, values: list) -> bool:
+    def filter_column_exclude(self, table_name: str, column, values: list, ignore_case: bool = True) -> bool:
         """Esconde valores específicos."""
-        all_values = self._get_column_unique_values(table_name, column)
+        col_idx = self._get_column_index(table_name, column, ignore_case)
+        all_values = self._get_column_unique_values(table_name, col_idx)
         visible = [v for v in all_values if v not in values]
-        return self.filter_column_values(table_name, column, visible)
+        return self.filter_column_values(table_name, col_idx, visible)
 
-    def filter_column_number(self, table_name: str, column: int, criteria: str) -> bool:
-        """Filtro numérico. Ex: xl.filter_column_number('Vendas', 3, '>1000')"""
+    def filter_column_number(self, table_name: str, column, criteria: str, ignore_case: bool = True) -> bool:
+        """Filtro numérico. Ex: xl.filter_column_number('Vendas', 'Valor', '>1000')"""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
-        tbl.Range.AutoFilter(Field=column, Criteria1=criteria)
+        tbl.Range.AutoFilter(Field=col_idx, Criteria1=criteria)
         return True
 
-    def filter_column_color(self, table_name: str, column: int, color: int, type: str = "fill") -> bool:
-        """Filtra por cor. Ex: xl.filter_column_color('Vendas', 1, 0xFFFF, 'fill')"""
+    def filter_column_color(self, table_name: str, column, color: int, type: str = "fill", ignore_case: bool = True) -> bool:
+        """Filtra por cor. Ex: xl.filter_column_color('Vendas', 'Status', 0xFFFF, 'fill')"""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
         operator = 8 if type == "fill" else 10  # xlFilterCellColor=8, xlFilterFontColor=10
-        tbl.Range.AutoFilter(Field=column, Operator=operator, Criteria1=color)
+        tbl.Range.AutoFilter(Field=col_idx, Operator=operator, Criteria1=color)
         return True
 
-    def filter_column_blanks(self, table_name: str, column: int, exclude_empty: bool = True) -> bool:
+    def filter_column_blanks(self, table_name: str, column, exclude_empty: bool = True, ignore_case: bool = True) -> bool:
         """Filtra vazios. exclude_empty=True mostra só não-vazios."""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
         if exclude_empty:
-            tbl.Range.AutoFilter(Field=column, Criteria1="<>")
+            tbl.Range.AutoFilter(Field=col_idx, Criteria1="<>")
         else:
-            tbl.Range.AutoFilter(Field=column, Criteria1="=")
+            tbl.Range.AutoFilter(Field=col_idx, Criteria1="=")
         return True
 
     def clear_filters(self, table_name: str) -> bool:
@@ -413,13 +445,14 @@ class ExcelCom:
             tbl.AutoFilterMode = False
         return True
 
-    def sort_column(self, table_name: str, column: int, order: str = "asc") -> bool:
+    def sort_column(self, table_name: str, column, order: str = "asc", ignore_case: bool = True) -> bool:
         """Classifica coluna. order='asc' ou 'desc'."""
+        col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
         sort = self._ws.Sort
         sort.SortFields.Clear()
         sort.SortFields.Add(
-            Key=tbl.ListColumns(column).Range,
+            Key=tbl.ListColumns(col_idx).Range,
             SortOn=0,
             Order=1 if order == "asc" else 2,
             DataOption=0

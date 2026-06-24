@@ -258,14 +258,35 @@ xl.quit()
 
 | Método | Parâmetros | Descrição |
 |--------|-----------|-----------|
-| `filter_column()` | table, column, criteria | Filtro simples (=, <>, contém, etc.) |
-| `filter_column_values()` | table, column, values | Mostrar apenas valores da lista |
-| `filter_column_exclude()` | table, column, values | Esconder valores da lista |
-| `filter_column_number()` | table, column, criteria | Filtro numérico (>, <, >=, <=) |
-| `filter_column_color()` | table, column, color, type | Filtrar por cor (fill/font) |
-| `filter_column_blanks()` | table, column, exclude_empty | Filtrar vazios/não-vazios |
+| `filter_column()` | table, column, criteria, ignore_case | Filtro simples (=, <>, contém, etc.) |
+| `filter_column_values()` | table, column, values, ignore_case | Mostrar apenas valores da lista |
+| `filter_column_exclude()` | table, column, values, ignore_case | Esconder valores da lista |
+| `filter_column_number()` | table, column, criteria, ignore_case | Filtro numérico (>, <, >=, <=) |
+| `filter_column_color()` | table, column, color, type, ignore_case | Filtrar por cor (fill/font) |
+| `filter_column_blanks()` | table, column, exclude_empty, ignore_case | Filtrar vazios/não-vazios |
 | `clear_filters()` | table | Limpa todos os filtros |
-| `sort_column()` | table, column, order | Classificar (asc/desc) |
+| `sort_column()` | table, column, order, ignore_case | Classificar (asc/desc) |
+
+#### Parâmetros de Coluna
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `column` | `int` ou `str` | Índice (1, 2, 3) ou nome ("Status", "Valor") |
+| `ignore_case` | `bool` | Ignora case e espaços (padrão: `True`) |
+
+```python
+# Por índice
+xl.filter_column("Vendas", 1, "Aprovado")
+
+# Por nome (ignora case e espaços por padrão)
+xl.filter_column("Vendas", "Status", "Aprovado")
+
+# Na planilha: "       Status       " → encontra com "Status"
+# Na planilha: "status" → encontra com "Status"
+
+# Case sensitive (ignora=False)
+xl.filter_column("Vendas", "Status", "Aprovado", ignore_case=False)
+```
 
 #### Operadores de Filtro
 
