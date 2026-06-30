@@ -65,15 +65,20 @@ class ExcelCom:
         raise ValueError(f"Coluna '{column}' não encontrada na tabela '{table_name}'")
 
     def _get_column_unique_values(self, table_name: str, column, ignore_case: bool = True) -> list:
-        """Retorna valores únicos de uma coluna da tabela."""
+        """Retorna valores únicos de uma coluna da tabela — bulk read."""
         col_idx = self._get_column_index(table_name, column, ignore_case)
         tbl = self._ws.ListObjects(table_name)
         col_data = tbl.ListColumns(col_idx).DataBodyRange
-        values = set()
-        for r in range(1, col_data.Rows.Count + 1):
-            val = col_data.Cells(r, 1).Value
-            if val is not None:
-                values.add(val)
+        raw = col_data.Value
+        if raw is None:
+            return []
+        if isinstance(raw, tuple):
+            if isinstance(raw[0], tuple):
+                values = {row[0] for row in raw if row[0] is not None}
+            else:
+                values = {v for v in raw if v is not None}
+        else:
+            values = {raw} if raw is not None else set()
         return list(values)
 
     # ========== WORKBOOK ==========
@@ -338,41 +343,73 @@ class ExcelCom:
     # ========== TABELA (ListObject) ==========
 
     def read_table(self, table_name: str) -> list:
-        """Lê corpo da tabela (ListObject)."""
+        """Lê corpo da tabela (ListObject) — bulk read."""
         tbl = self._ws.ListObjects(table_name)
         data = tbl.DataBodyRange
-        return [[data.Cells(r, c).Value for c in range(1, data.Columns.Count + 1)] for r in range(1, data.Rows.Count + 1)]
+        if data is None:
+            return []
+        raw = data.Value
+        if raw is None:
+            return []
+        if not isinstance(raw, tuple):
+            return [[raw]]
+        return [list(row) if isinstance(row, tuple) else [row] for row in raw]
 
     def read_filtered_table(self, table_name: str) -> list:
-        """Lê apenas linhas visíveis (não filtradas) da tabela."""
+        """Lê apenas linhas visíveis (não filtradas) da tabela — bulk read."""
         tbl = self._ws.ListObjects(table_name)
         data = tbl.DataBodyRange
-        linhas = []
-        for r in range(1, data.Rows.Count + 1):
-            if data.Rows(r).Hidden:
-                continue
-            linha = []
-            for c in range(1, data.Columns.Count + 1):
-                val = data.Cells(r, c).Value
-                linha.append(val if val is not None else "")
-            linhas.append(linha)
-        return linhas
+        if data is None:
+            return []
+
+        # BULK: ler tudo de uma vez
+        raw = data.Value
+        if raw is None:
+            return []
+        if not isinstance(raw, tuple):
+            raw = ((raw,),)
+
+        # BULK: linhas ocultas
+        try:
+            hidden_flags = data.Rows.Hidden
+            if not isinstance(hidden_flags, tuple):
+                hidden_flags = (hidden_flags,)
+        except Exception:
+            hidden_flags = tuple(False for _ in range(len(raw)))
+
+        return [
+            [v if v is not None else "" for v in (row if isinstance(row, tuple) else (row,))]
+            for i, row in enumerate(raw)
+            if i < len(hidden_flags) and not hidden_flags[i]
+        ]
 
     def count_filtered_rows(self, table_name: str) -> int:
         """Conta linhas visíveis (não filtradas) da tabela."""
         return len(self.read_filtered_table(table_name))
 
     def read_table_header(self, table_name: str) -> list:
-        """Lê cabeçalho da tabela."""
+        """Lê cabeçalho da tabela — bulk read."""
         tbl = self._ws.ListObjects(table_name)
         header = tbl.HeaderRowRange
-        return [header.Cells(1, c).Value for c in range(1, header.Columns.Count + 1)]
+        raw = header.Value
+        if isinstance(raw, tuple):
+            if isinstance(raw[0], tuple):
+                return list(raw[0])
+            return list(raw)
+        return [raw]
 
     def read_table_column(self, table_name: str, column_name: str) -> list:
-        """Lê uma coluna da tabela pelo nome."""
+        """Lê uma coluna da tabela pelo nome — bulk read."""
         tbl = self._ws.ListObjects(table_name)
         col = tbl.ListColumns(column_name).DataBodyRange
-        return [col.Cells(r, 1).Value for r in range(1, col.Rows.Count + 1)]
+        raw = col.Value
+        if raw is None:
+            return []
+        if isinstance(raw, tuple):
+            if isinstance(raw[0], tuple):
+                return [row[0] for row in raw]
+            return list(raw)
+        return [raw]
 
     def count_table_rows(self, table_name: str) -> int:
         """Conta linhas da tabela."""
@@ -434,7 +471,7 @@ class ExcelCom:
 
     def read_range_filtered(self, header_row: int, start_row: int = None,
                             filters: dict = None, sheet: str = None) -> list:
-        """Lê um range e filtra em Python (para planilhas sem ListObject).
+        """Lê um range e filtra em Python — bulk read (para planilhas sem ListObject).
 
         Args:
             header_row: Linha do cabeçalho (1-based)
@@ -449,32 +486,65 @@ class ExcelCom:
         if start_row is None:
             start_row = header_row + 1
 
-        # Ler cabeçalho
-        header = []
-        for c in range(1, ws.UsedRange.Columns.Count + 1):
-            val = ws.Cells(header_row, c).Value
-            header.append(str(val or "").strip())
+        last_col = ws.UsedRange.Columns.Count
+        last_row = ws.UsedRange.Rows.Count
 
-        # Ler dados e filtrar
+        if start_row > last_row:
+            return []
+
+        # BULK: ler cabeçalho de uma vez
+        header_raw = ws.Range(ws.Cells(header_row, 1), ws.Cells(header_row, last_col)).Value
+        if isinstance(header_raw, tuple):
+            if isinstance(header_raw[0], tuple):
+                header = [str(h or "").strip() for h in header_raw[0]]
+            else:
+                header = [str(h or "").strip() for h in header_raw]
+        else:
+            header = [str(header_raw or "").strip()]
+
+        # BULK: ler todos os dados de uma vez
+        data = ws.Range(ws.Cells(start_row, 1), ws.Cells(last_row, last_col)).Value
+        if data is None:
+            return []
+        if not isinstance(data, tuple):
+            data = ((data,),)
+
+        # BULK: linhas ocultas
+        try:
+            hidden_flags = ws.Range(ws.Cells(start_row, 1), ws.Cells(last_row, 1)).Rows.Hidden
+            if not isinstance(hidden_flags, tuple):
+                hidden_flags = (hidden_flags,)
+        except Exception:
+            hidden_flags = tuple(False for _ in range(len(data)))
+
+        # Construir índice de colunas do filtro para acesso rápido
+        filter_cols = {}
+        if filters:
+            for col_name in filters:
+                if col_name in header:
+                    filter_cols[col_name] = header.index(col_name)
+
+        # Filtrar em Python (zero COM)
         result = []
-        for r in range(start_row, ws.UsedRange.Rows.Count + 1):
-            # Pular linhas ocultas
-            if ws.Rows(r).Hidden:
+        for i, row in enumerate(data):
+            if i < len(hidden_flags) and hidden_flags[i]:
                 continue
 
-            row = {}
-            for c, nome in enumerate(header, start=1):
-                row[nome] = ws.Cells(r, c).Value
+            if not isinstance(row, tuple):
+                row = (row,)
+
+            row_dict = {}
+            for c, nome in enumerate(header):
+                row_dict[nome] = row[c] if c < len(row) else None
 
             # Aplicar filtros
             if filters:
                 match = True
-                for col, valor in filters.items():
-                    if col in header:
-                        cell_val = str(row.get(col) or "").strip()
+                for col_name, valor in filters.items():
+                    if col_name in filter_cols:
+                        cell_val = str(row_dict.get(col_name) or "").strip()
                         filter_val = str(valor or "").strip()
                         if valor is None:
-                            # Filtro: não vazio
                             if cell_val == "":
                                 match = False
                         elif cell_val != filter_val:
@@ -482,7 +552,7 @@ class ExcelCom:
                 if not match:
                     continue
 
-            result.append(row)
+            result.append(row_dict)
 
         return result
 
