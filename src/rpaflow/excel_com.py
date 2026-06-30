@@ -435,20 +435,26 @@ class ExcelCom:
         raw = self.read_filtered_table(table_name)
         return [dict(zip(nomes, row)) for row in raw]
 
-    def find_row(self, table_name: str, criteria: dict) -> int:
+    def find_row(self, table_name: str, criteria: dict, data: list = None) -> int:
         """Retorna índice 0-based da primeira linha que bate com criteria.
 
         Args:
             table_name: Nome da tabela
             criteria: Dicionário com coluna=valor. Ex: {"NF": "12345", "Identificador": "678"}
+            data: Lista de listas já lida (opcional). Se não informado, lê a tabela.
 
         Returns:
             Índice 0-based ou None se não encontrar.
         """
-        header = self.read_table_header(table_name)
-        nomes = [str(h or "").strip() for h in header]
-        raw = self.read_table(table_name)
-        for idx, row in enumerate(raw):
+        if data is None:
+            header = self.read_table_header(table_name)
+            nomes = [str(h or "").strip() for h in header]
+            data = self.read_table(table_name)
+        else:
+            header = self.read_table_header(table_name)
+            nomes = [str(h or "").strip() for h in header]
+
+        for idx, row in enumerate(data):
             if all(
                 str(row[nomes.index(k)] or "").strip().replace(".0", "") == str(v).strip().replace(".0", "")
                 for k, v in criteria.items() if k in nomes
