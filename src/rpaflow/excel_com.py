@@ -624,8 +624,10 @@ class ExcelCom:
     def clear_filters(self, table_name: str) -> bool:
         """Limpa todos os filtros da tabela."""
         tbl = self._ws.ListObjects(table_name)
-        if tbl.AutoFilterMode:
-            tbl.AutoFilterMode = False
+        try:
+            tbl.Range.ShowAllData
+        except Exception:
+            pass
         return True
 
     def remove_column_filter(self, table_name: str, column, ignore_case: bool = True) -> bool:
