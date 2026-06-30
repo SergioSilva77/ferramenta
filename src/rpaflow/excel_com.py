@@ -356,32 +356,30 @@ class ExcelCom:
         return [list(row) if isinstance(row, tuple) else [row] for row in raw]
 
     def read_filtered_table(self, table_name: str) -> list:
-        """Lê apenas linhas visíveis (não filtradas) da tabela — bulk read."""
+        """Lê apenas linhas visíveis (não filtradas) da tabela — hybrid read."""
         tbl = self._ws.ListObjects(table_name)
         data = tbl.DataBodyRange
         if data is None:
             return []
 
-        # BULK: ler tudo de uma vez
+        # BULK: ler todos os dados de uma vez
         raw = data.Value
         if raw is None:
             return []
         if not isinstance(raw, tuple):
             raw = ((raw,),)
 
-        # BULK: linhas ocultas
-        try:
-            hidden_flags = data.Rows.Hidden
-            if not isinstance(hidden_flags, tuple):
-                hidden_flags = (hidden_flags,)
-        except Exception:
-            hidden_flags = tuple(False for _ in range(len(raw)))
+        # PER-ROW: linhas ocultas (correto para ListObject filtrado)
+        linhas = []
+        for r in range(1, data.Rows.Count + 1):
+            if data.Rows(r).Hidden:
+                continue
+            row = raw[r - 1] if r - 1 < len(raw) else ()
+            if not isinstance(row, tuple):
+                row = (row,)
+            linhas.append([v if v is not None else "" for v in row])
 
-        return [
-            [v if v is not None else "" for v in (row if isinstance(row, tuple) else (row,))]
-            for i, row in enumerate(raw)
-            if i < len(hidden_flags) and not hidden_flags[i]
-        ]
+        return linhas
 
     def count_filtered_rows(self, table_name: str) -> int:
         """Conta linhas visíveis (não filtradas) da tabela."""
