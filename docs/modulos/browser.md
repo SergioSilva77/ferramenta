@@ -64,6 +64,9 @@ browser.get_text("#texto", recursive=True)
 # ====== DOWNLOAD ======
 filepath = browser.wait_for_download("C:/downloads/arquivo.pdf")
 
+# ====== JANELA ======
+browser.maximize()
+
 # ====== SCREENSHOT ======
 browser.screenshot("captura.png")
 
@@ -139,6 +142,12 @@ browser.close()
 | Propriedade | Descrição |
 |-------------|-----------|
 | `page` | Retorna o Playwright Page subjacente |
+
+### Janela
+
+| Método | Parâmetros | Descrição |
+|--------|-----------|-----------|
+| `maximize()` | — | Maximiza a janela usando dimensões reais da tela |
 
 ### Screenshot
 

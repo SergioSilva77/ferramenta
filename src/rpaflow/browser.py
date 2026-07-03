@@ -27,8 +27,12 @@ class Browser:
             if self._type == "playwright":
                 from playwright.sync_api import sync_playwright
                 self._playwright = sync_playwright().start()
-                self._browser = self._playwright.chromium.launch(headless=headless)
-                self._page = self._browser.new_page()
+                self._browser = self._playwright.chromium.launch(
+                    headless=headless,
+                    args=["--start-maximized"] if not headless else []
+                )
+                context = self._browser.new_context(no_viewport=True, locale="pt-BR")
+                self._page = context.new_page()
             elif self._type == "selenium":
                 from selenium import webdriver
                 self._page = webdriver.Chrome()
@@ -190,6 +194,14 @@ class Browser:
             download.save_as(save_path)
             return save_path
         return str(download.path())
+
+    # ========== JANELA ==========
+
+    def maximize(self) -> bool:
+        """Maximiza a janela do navegador usando as dimensões reais da tela."""
+        size = self._page.evaluate("() => ({ width: screen.width, height: screen.height })")
+        self._page.set_viewport_size(size)
+        return True
 
     # ========== SCREENSHOT ==========
 

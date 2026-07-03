@@ -600,6 +600,9 @@ from rpaflow.browser import Browser
 browser = Browser()
 browser.start("https://site.com", type="playwright")
 
+# Maximizar janela
+browser.maximize()
+
 # Normal
 browser.click("#botao")
 browser.type_text("#campo", "texto")
@@ -673,7 +676,7 @@ browser.close()
 | `back()` | — | Volta |
 | `forward()` | — | Avança |
 | `reload()` | — | Recarrega |
-| `maximize()` | — | Maximiza |
+| `maximize()` | — | Maximiza janela com dimensões reais da tela |
 
 ### Imagem
 
