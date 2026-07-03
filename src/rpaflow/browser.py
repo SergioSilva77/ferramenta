@@ -11,6 +11,7 @@ class Browser:
         self._page = None
         self._playwright = None
         self._browser = None
+        self._context = None
         self._type = None
 
     @property
@@ -31,8 +32,8 @@ class Browser:
                     headless=headless,
                     args=["--start-maximized"] if not headless else []
                 )
-                context = self._browser.new_context(no_viewport=True, locale="pt-BR")
-                self._page = context.new_page()
+                self._context = self._browser.new_context(no_viewport=True, locale="pt-BR")
+                self._page = self._context.new_page()
             elif self._type == "selenium":
                 from selenium import webdriver
                 self._page = webdriver.Chrome()
@@ -201,6 +202,78 @@ class Browser:
         """Maximiza a janela do navegador usando as dimensões reais da tela."""
         size = self._page.evaluate("() => ({ width: screen.width, height: screen.height })")
         self._page.set_viewport_size(size)
+        return True
+
+    # ========== ABAS ==========
+
+    def get_tabs(self) -> list:
+        """Lista todas as abas abertas. Retorna lista de dicts com index, title e url."""
+        pages = self._context.pages
+        tabs = []
+        for i, p in enumerate(pages):
+            try:
+                title = p.title()
+            except Exception:
+                title = ""
+            tabs.append({"index": i, "title": title, "url": p.url})
+        return tabs
+
+    def get_current_tab(self) -> dict:
+        """Retorna info da aba atual (index, title, url)."""
+        pages = self._context.pages
+        idx = pages.index(self._page) if self._page in pages else -1
+        try:
+            title = self._page.title()
+        except Exception:
+            title = ""
+        return {"index": idx, "title": title, "url": self._page.url}
+
+    def switch_to_tab(self, index: int) -> bool:
+        """Muda o contexto para a aba pelo índice (0-based)."""
+        pages = self._context.pages
+        if index < 0 or index >= len(pages):
+            raise IndexError(f"Índice {index} inválido. Existem {len(pages)} abas (0 a {len(pages)-1}).")
+        self._page = pages[index]
+        self._page.bring_to_front()
+        return True
+
+    def new_tab(self, url: str = "") -> bool:
+        """Abre uma nova aba. Se url for informado, navega até ela."""
+        self._page = self._context.new_page()
+        if url:
+            self._page.goto(url)
+        self._page.bring_to_front()
+        return True
+
+    def close_tab(self, index: int = None) -> bool:
+        """Fecha a aba pelo índice (0-based). Se index=None, fecha a aba atual."""
+        pages = self._context.pages
+        if not pages:
+            return False
+
+        if index is None:
+            index = pages.index(self._page) if self._page in pages else 0
+
+        if index < 0 or index >= len(pages):
+            raise IndexError(f"Índice {index} inválido. Existem {len(pages)} abas (0 a {len(pages)-1}).")
+
+        tab_to_close = pages[index]
+
+        # Se está fechando a aba atual, muda para a anterior
+        if tab_to_close == self._page:
+            new_index = max(0, index - 1)
+            if len(pages) > 1:
+                self._page = pages[new_index] if new_index != index else pages[0]
+            else:
+                self._page = None
+
+        tab_to_close.close()
+
+        # Atualiza self._page se necessário
+        if self._page is None or self._page.is_closed():
+            remaining = self._context.pages
+            self._page = remaining[-1] if remaining else None
+
         return True
 
     # ========== SCREENSHOT ==========

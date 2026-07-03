@@ -67,6 +67,19 @@ filepath = browser.wait_for_download("C:/downloads/arquivo.pdf")
 # ====== JANELA ======
 browser.maximize()
 
+# ====== ABAS ======
+browser.new_tab("https://google.com")
+browser.new_tab("https://github.com")
+
+tabs = browser.get_tabs()
+print(tabs)
+# [{'index': 0, 'title': 'Site', 'url': 'https://site.com'},
+#  {'index': 1, 'title': 'Google', 'url': 'https://google.com'},
+#  {'index': 2, 'title': 'GitHub', 'url': 'https://github.com'}]
+
+browser.switch_to_tab(0)      # volta para a primeira aba
+browser.close_tab(2)          # fecha a aba do GitHub
+
 # ====== SCREENSHOT ======
 browser.screenshot("captura.png")
 
@@ -148,6 +161,16 @@ browser.close()
 | Método | Parâmetros | Descrição |
 |--------|-----------|-----------|
 | `maximize()` | — | Maximiza a janela usando dimensões reais da tela |
+
+### Abas
+
+| Método | Parâmetros | Descrição |
+|--------|-----------|-----------|
+| `get_tabs()` | — | Lista abas com index, title e url |
+| `get_current_tab()` | — | Retorna info da aba atual |
+| `switch_to_tab()` | index (0-based) | Muda para a aba pelo índice |
+| `new_tab()` | url (opcional) | Abre nova aba |
+| `close_tab()` | index (opcional, 0-based) | Fecha aba (None = fecha atual) |
 
 ### Screenshot
 

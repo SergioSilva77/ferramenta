@@ -678,6 +678,16 @@ browser.close()
 | `reload()` | — | Recarrega |
 | `maximize()` | — | Maximiza janela com dimensões reais da tela |
 
+### Abas
+
+| Método | Parâmetros | Descrição |
+|--------|-----------|-----------|
+| `get_tabs()` | — | Lista abas com index, title e url |
+| `get_current_tab()` | — | Retorna info da aba atual |
+| `switch_to_tab()` | index (0-based) | Muda para a aba pelo índice |
+| `new_tab()` | url (opcional) | Abre nova aba |
+| `close_tab()` | index (opcional, 0-based) | Fecha aba (None = fecha atual) |
+
 ### Imagem
 
 | Método | Parâmetros | Descrição |
