@@ -6,3 +6,7 @@ dist/
 build/
 .eggs/
 *.egg
+
+.env
+.pytest_cache/
+tmp_*.py

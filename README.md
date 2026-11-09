@@ -25,6 +25,32 @@ pip install rpaflow[sql]  # Módulo específico
 | [api](#api) | `pip install rpaflow[api]` | Requisições HTTP/REST |
 | [email](#email) | `pip install rpaflow[email]` | Envio de emails SMTP |
 
+## rpaflow v2 (0.2.0+)
+
+`rpaflow.v2` traz as **mesmas classes** com os bugs conhecidos corrigidos. As originais continuam intactas;
+para migrar, troque só o import:
+
+```python
+# antes
+from rpaflow.excel_com import ExcelCom
+# depois
+from rpaflow.v2.excel_com import ExcelCom      # ou: from rpaflow.v2 import ExcelCom, Browser, SQL, ...
+```
+
+Resumo do que muda (detalhes no docstring de cada módulo e em [docs/06-v2.md](docs/06-v2.md)):
+
+| Módulo | Principais correções |
+|--------|----------------------|
+| `ExcelCom` | Excel próprio por instância (`DispatchEx`) e `quit()`/`with` que realmente fecham só o PID dele; `clear_filters` limpa de verdade; `find_row` sem corromper `10.05`; leitura filtrada correta; `wait_calculation` não quebra |
+| `Browser` | `BrowserError` importado; `wait_for_download` funciona; modo CDP com porta/perfil próprios e `close()` que não derruba outros Chromes; `wait_for_element` hidden recursivo |
+| `SQL` | INSERT/UPDATE/DELETE funcionam em SQL Server/PostgreSQL; `QueryError` importado; `?` em qualquer banco; transações |
+| `Ini` | `%` em senha, arquivo com BOM, valor vazio com fallback |
+| `Json` | JSON com lista no topo, BOM, datetime/Decimal, escrita atômica |
+| `Log` | Vários `Log` no mesmo processo sem se calarem; `close()`; sem console não estoura |
+| `Email` | Vários destinatários/cc/bcc, anexos com nome certo no Windows, HTML, SSL |
+| `Excel` | `write()` funciona; `read("A1")`; não cria planilha vazia em silêncio |
+| `Files`, `API`, `Desktop` | Pastas criadas, listagens só de arquivos, BOM; timeout/params/redirect; `ImageNotFoundException` |
+
 ---
 
 # SQL

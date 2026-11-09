@@ -12,8 +12,14 @@ from rpaflow._exceptions import (
 
 from rpaflow import sql, excel, browser, files, api, email, ini
 
-__version__ = "0.1.0"
+try:
+    from importlib.metadata import version as _version
+    __version__ = _version("rpaflow")
+except Exception:  # rodando direto do código-fonte, sem instalar
+    __version__ = "0.2.0"
+
 __all__ = [
+    "v2",
     "RPAFlowError",
     "ConnectionError",
     "QueryError",
